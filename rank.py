@@ -58,11 +58,11 @@ def compare_rankings(rank1: List[Team], rank2: List[Team], n_biggest_diff: int =
     print("Dropped from Top 25:")
     for team_name in rank1_top25:
         if team_name not in rank2_top25:
-            print(f"\t{team}")
+            print(f"\t{team_name}")
     print("New to Top 25:")
     for team_name in rank2_top25:
         if team_name not in rank1_top25:
-            print(f"\t{team}")
+            print(f"\t{team_name}")
         
 def filter_ranking(ranking: List[Team], conference: str) -> List[Tuple[Team, int]]:
     '''
@@ -92,11 +92,11 @@ def read_ranking(filename: str) -> List[Team]:
 def main():
     Game.away_disadvantage = 2
     Game.winner_bonus = 5
+    Game.non_fbs_loss_multiplier = 3
     Team.ignore_all_non_fbs = False
     Team.ignore_wins_vs_non_fbs = True
-    Team.non_fbs_loss_multiplier = 3
 
-    fbs_seen: Set[Team] = read_data.read_teams()
+    fbs_seen: Set[Team] = read_data.process_data()
 
     rank1 = sorted(list(fbs_seen), key=lambda Team: Team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0,exclude_team_result_from_opp=True), reverse=True)
     for i, team in enumerate(rank1):

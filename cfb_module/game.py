@@ -3,8 +3,14 @@
     Description: Contains the data associated with a game played
     Public methods:
         get_loser(): returns the loser cfb_module.Team of the game (None if it was a tie)
-        get_winenr(): returns the winner cfb_module.Team of the game (None if it was a tie)
-        get_victory_margin(): returns the number of points the winner won the game by
+        get_winner(): returns the winner cfb_module.Team of the game (None if it was a tie)
+        get_adj_victory_margin(): returns the number of (adjusted) points the winner won the game by
+        get_opponent(team): returns the opponent of team in this game
+    Public static variables:
+        home_advantage: # points subtracted from home score in adjusted score
+        away_disadvantage: # points added to away score in adjusted score
+        winner_bonus: # extra points to give to the real-life winner in adjusted score
+        non_fbs_loss_multiplier: weight applied to the adjusted victory margin if the winner was non-fbs
 '''
 
 from __future__ import annotations
@@ -15,6 +21,7 @@ class Game:
     home_advantage: float = 0
     away_disadvantage: float = 0
     winner_bonus: float = 0
+    non_fbs_loss_multiplier: float = 1
 
     def __init__(self, home_team: cfb_module.Team, away_team: cfb_module.Team, neutral_game: bool, home_score: int, away_score: int):
         self.home_team: cfb_module.Team = home_team
@@ -67,6 +74,9 @@ class Game:
         '''
             Returns the absolute difference between the two adjusted scores of this game
         '''
+
+        if not self.get_winner().is_fbs:
+            return Game.non_fbs_loss_multiplier * abs(self.adj_home_score - self.adj_away_score)
 
         return abs(self.adj_home_score - self.adj_away_score)
 

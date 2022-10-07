@@ -4,6 +4,16 @@
     Public methods:
         add_game(game): adds a new game to this team's game list
         get_games(): returns the list of this teams games
+        set_fbs(is_fbs): updates the team's is_fbs
+        get_avg_game_metric(opts): returns the ranking metric
+        get_avg_differential(exlude_team): gets the average adjusted point differential for this team
+        get_num_wins(exclude_team): gets the number of real-life wins for this team
+        get_num_losses(exclude_team): gets the number of real-life losses for this team
+        get_name(): gets the name of this team
+        get_conference(): gets the conference of this team
+    Public static variables:
+        ignore_all_non_fbs: use to ignore any game that is played against a non-fbs opponent
+        ignore_wins_vs_non_fbs: use to ignore a win vs. a non-fbs opponent
 '''
 
 from __future__ import annotations
@@ -15,7 +25,6 @@ class Team:
     # use to tweak settings on processing FCS games
     ignore_all_non_fbs: bool = True
     ignore_wins_vs_non_fbs: bool = True
-    non_fbs_loss_multiplier: float = 1
 
     def __init__(self, team_name: str, trunc_name: str, conference: str):
         self.team_name: str = team_name
@@ -36,20 +45,17 @@ class Team:
         '''
 
         if game not in self.games:
-            # do not add the game if it is non-fbs opponent and the ignore_all_non_fbs flag is set
             opp_team: Optional[Team] = game.get_opponent(self)
             if opp_team is None:
                 return False
 
+            # do not add the game if it is non-fbs opponent and the ignore_all_non_fbs flag is set
             if Team.ignore_all_non_fbs and not opp_team.is_fbs:
                 return False
 
             if game.get_loser() == self:
                 self.num_losses += 1
-                if not opp_team.is_fbs:
-                    self.point_differential -= Team.non_fbs_loss_multiplier * game.get_adj_victory_margin()
-                else:
-                    self.point_differential -= game.get_adj_victory_margin()
+                self.point_differential -= game.get_adj_victory_margin()
             else:
                 # do not add the game if it is a win against a non-fbs opponent and the ignore_wins_vs_non_fbs flag is set
                 if Team.ignore_wins_vs_non_fbs and not opp_team.is_fbs:
@@ -109,11 +115,7 @@ class Team:
                 opp_win_avg = opp_team.get_num_wins() / (opp_team.get_num_wins() + opp_team.get_num_losses())
 
             if self == game.get_loser():
-                if not opp_team.is_fbs:
-                    game_mov = -Team.non_fbs_loss_multiplier * game.get_adj_victory_margin()
-                else:
-                    game_mov = -game.get_adj_victory_margin()
-
+                game_mov = -game.get_adj_victory_margin()
                 result_factor = -loss_factor * (1 - opp_win_avg)
             else:
                 game_mov = game.get_adj_victory_margin() 
@@ -161,10 +163,7 @@ class Team:
                 continue
 
             if game.get_loser() == self:
-                if not opp_team.is_fbs:
-                    diff -= Team.non_fbs_loss_multiplier * game.get_adj_victory_margin()
-                else:
-                    diff -= game.get_adj_victory_margin()
+                diff -= game.get_adj_victory_margin()
             else:
                 diff += game.get_adj_victory_margin()
 
