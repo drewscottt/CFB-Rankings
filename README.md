@@ -33,7 +33,7 @@ There are two main files:
 
     ```python3 rank.py <team_directory>```
 
-    ```python3 rank.py teams/2022-week6/```
+    ```python3 rank.py teams/2022-week6-results/```
 
 * predict_compare.py: Used to predict an upcoming week of games based on a previously generated ranking, or compare a week of results to a given ranking.
 
@@ -42,6 +42,36 @@ There are two main files:
     ```python3 predict_compare.py past_rankings/2022-week6.txt predict```
 
     ```python3 predict_compare.py past_rankings/2022-week6.txt compare```
+
+## Current Top 25
+
+1. Ohio State (+1)
+2. Alabama (-1)
+3. Georgia (+0)
+4. Tennessee (+0)
+5. Michigan (+0)
+6. Clemson (+3)
+7. James Madison (-1)
+8. Ole Miss (+0)
+9. USC (+4)
+10. TCU (-3)
+11. Texas (+9)
+12. UCLA (+0)
+13. Penn State (+1)
+14. Mississippi State (-4)
+15. Syracuse (+3)
+16. Wake Forest (-1)
+17. Minnesota (+2)
+18. Kansas (-7)
+19. Illinois (+3)
+20. Oklahoma State (NEW)
+21. Purdue (NEW)
+22. UCF (NEW)
+23. NC State (+1)
+24. Utah (-1)
+25. Oregon (NEW)
+
+    Dropped from last Top 25: Maryland (15), LSU (16), Kansas State (20), Duke (24)
 
 ## Track Record
 

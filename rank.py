@@ -56,20 +56,19 @@ def compare_rankings(rank1: List[Team], rank2: List[Team], n_biggest_diff: int =
     for i in range(25):
         rank1_top25[rank1[i].get_name()] = i
         rank2_top25[rank2[i].get_name()] = i
-    print("Dropped from Top 25:")
-    for team_name in rank1_top25:
-        if team_name not in rank2_top25:
-            print(f"\t{team_name}")
-    print("New to Top 25:")
-    for team_name in rank2_top25:
-        if team_name not in rank1_top25:
-            print(f"\t{team_name}")
     for i in range(25):
         team_name = rank2[i].get_name()
         if team_name not in rank1_top25:
-            print(f"{i+1}. {team_name} NEW")
+            print(f"{i+1}. {team_name} (NEW)")
         else:
-            print(f"{i+1}. {team_name} {(rank1_top25[team_name] - i):+d}")
+            print(f"{i+1}. {team_name} ({(rank1_top25[team_name] - i):+d})")
+    dropped = "Dropped from last Top 25:"
+    prefix = ""
+    for team_name in rank1_top25:
+        if team_name not in rank2_top25:
+            dropped += f"{prefix} {team_name} ({rank1_top25[team_name]})"
+            prefix = ","
+    print(dropped)
         
 def filter_ranking(ranking: List[Team], conference: str) -> List[Tuple[Team, int]]:
     '''

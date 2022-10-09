@@ -50,14 +50,15 @@ def get_games_to_play(get_results: bool, abbrevs: Dict[str, str] = {}) -> List[G
                     winning_team_name = away_team_name
 
                 # get the odds favorite of the game
-                odds_line = result_soup.find("div", {"class": "odds-lines-plus-logo"}).find("ul").find("li").text
-                odds_favorite = abbrevs[odds_line.split(" ")[1]]
+                odds = result_soup.find("div", {"class": "odds-lines-plus-logo"}).find("ul").find("li").text
+                odds_favorite = abbrevs[odds.split(" ")[1]]
                 if odds_favorite[:7] == "San Jos":
                     # TODO: awful hack
                     odds_favorite = "San Jose State"
+                odds_line = float(odds.split(" ")[2])
 
                 game = Game(Team(home_team_name), Team(away_team_name), False, home_score, away_score)
-                game.set_odds_favorite_team(odds_favorite)
+                game.set_odds(odds_favorite, odds_line)
                 games_to_play.append(game)
             else:
                 games_to_play.append(Game(Team(home_team_name), Team(away_team_name), False, 0, 0))
@@ -105,7 +106,7 @@ def main(ranking_filename: str, compare_predict: str = "predict"):
                 upsets.append((rank_diff, f"{winning_team.get_name()} ({winning_rank}) def. {losing_team.get_name()} ({losing_rank}): {rank_diff} difference"))
 
             if projected_winner != game.get_odds_favorite_team():
-                projs_differ.append(f"{winning_team.get_name()} def. {losing_team.get_name()}, sportsbook selected {game.get_odds_favorite_team().get_name()}, ranking selected {projected_winner.get_name()}")
+                projs_differ.append(f"{winning_team.get_name()} def. {losing_team.get_name()}: sportsbook selected {game.get_odds_favorite_team().get_name()} ({game.get_odds_line()}), ranking selected {projected_winner.get_name()}")
                 if projected_winner == winning_team:
                     num_better_than_odds += 1
 
