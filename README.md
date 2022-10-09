@@ -37,8 +37,12 @@ There are two main files:
 
 * predict_compare.py: Used to predict an upcoming week of games based on a previously generated ranking, or compare a week of results to a given ranking.
 
-    ```python3 predict_compare.py <ranking_filename> <predict_compare```
+    ```python3 predict_compare.py <ranking_filename> <predict_compare>```
 
     ```python3 predict_compare.py past_rankings/2022-week6.txt predict```
 
     ```python3 predict_compare.py past_rankings/2022-week6.txt compare```
+
+## Track Record
+
+* 2022, Week 6: Correctly predicted 68.42% (39/57) of games
