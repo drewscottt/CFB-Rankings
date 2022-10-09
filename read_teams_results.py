@@ -32,9 +32,9 @@ def get_teams(espn_url: str, team_links_filename: str, team_pages_dir: str) -> T
             # either read team page from espn.com or from locally saved
             team_filename: str = f"{team_pages_dir}{team_link.split('/')[-1].strip()}"
             if not os.path.isfile(team_filename):
-                team_content: str = requests.get(f"{espn_url}{team_link}").content
+                team_content: str = requests.get(f"{espn_url}{team_link}").content.decode("utf-8")
                 with open(team_filename, "w") as f:
-                    f.write(str(team_content))
+                    f.write(team_content)
             else:
                 with open(team_filename, "r") as f:
                     team_content = f.read()

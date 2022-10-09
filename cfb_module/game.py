@@ -26,6 +26,7 @@ class Game:
     def __init__(self, home_team: cfb_module.Team, away_team: cfb_module.Team, neutral_game: bool, home_score: int, away_score: int):
         self.home_team: cfb_module.Team = home_team
         self.away_team: cfb_module.Team = away_team
+        self.odds_favorite_team: Optional[cfb_module.Team] = None
         self.neutral_game: bool = neutral_game
         self.home_score: int = home_score
         self.away_score: int = away_score
@@ -83,6 +84,25 @@ class Game:
         '''
 
         return self.away_team
+
+    def set_odds_favorite_team(self, favorite_name: str):
+        '''
+            Sets the odds favorite team based on team name
+        '''
+
+        if self.home_team.get_name() == favorite_name:
+            self.odds_favorite_team = self.home_team
+        elif self.away_team.get_name() == favorite_name:
+            self.odds_favorite_team = self.away_team
+        else:
+            self.odds_favorite_team = None
+
+    def get_odds_favorite_team(self) -> Optional[cfb_module.Team]:
+        '''
+            Returns the odds favorite team
+        '''
+
+        return self.odds_favorite_team
 
     def get_adj_victory_margin(self) -> float:
         '''

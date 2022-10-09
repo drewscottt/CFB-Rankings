@@ -45,4 +45,4 @@ There are two main files:
 
 ## Track Record
 
-* 2022, Week 6: Correctly predicted 68.42% (39/57) of games
+* 2022, Week 6: Correctly predicted 68.42% (39/57) of games. In games with different favorite than Caesar's Sportsbook (as reported by ESPN), 36.36% (4/11) were chosen correctly.

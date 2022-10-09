@@ -5,7 +5,7 @@ import sys
 import os.path
 from cfb_module import Game, Team
 
-def get_games_to_play(get_results: bool) -> List[Game]:
+def get_games_to_play(get_results: bool, abbrevs: Dict[str, str] = {}) -> List[Game]:
     schedule_url = "https://www.espn.com/college-football/schedule"
     schedule = requests.get(schedule_url).content
     soup = BeautifulSoup(schedule, 'html.parser')
@@ -40,16 +40,25 @@ def get_games_to_play(get_results: bool) -> List[Game]:
                     with open(result_filename, "r") as f:
                         result = f.read()
 
+                # get the results of the game
                 result_soup = BeautifulSoup(result, "html.parser")
                 final_scores = result_soup.find_all("td", {"class", "final-score"})
                 away_score = int(final_scores[0].text)
                 home_score = int(final_scores[1].text)
-
                 winning_team_name = home_team_name
                 if away_score > home_score:
                     winning_team_name = away_team_name
 
-                games_to_play.append(Game(Team(home_team_name), Team(away_team_name), False, home_score, away_score))
+                # get the odds favorite of the game
+                odds_line = result_soup.find("div", {"class": "odds-lines-plus-logo"}).find("ul").find("li").text
+                odds_favorite = abbrevs[odds_line.split(" ")[1]]
+                if odds_favorite[:7] == "San Jos":
+                    # TODO: awful hack
+                    odds_favorite = "San Jose State"
+
+                game = Game(Team(home_team_name), Team(away_team_name), False, home_score, away_score)
+                game.set_odds_favorite_team(odds_favorite)
+                games_to_play.append(game)
             else:
                 games_to_play.append(Game(Team(home_team_name), Team(away_team_name), False, 0, 0))
 
@@ -62,14 +71,23 @@ def main(ranking_filename: str, compare_predict: str = "predict"):
         for i, line in enumerate(f):
             team_name: str = " ".join(line.split(" ")[1:-1])
             ranking[team_name] = i + 1
+
+    # read espn abbreviations
+    abbrevs: Dict[str, str] = {}
+    with open("espn_abbrevs.csv", "r") as f:
+        for line in f:
+            name, abbrev = line.strip().split(",")
+            abbrevs[abbrev] = name
     
     # read the games to play and either compare the results to rankings or predict results
     games: List[Game] = []
     if compare_predict == "compare":
-        games = get_games_to_play(True)
+        games = get_games_to_play(True, abbrevs)
 
         num_correct: int = 0
         upsets: List[Tuple[int, str]] = []
+        projs_differ: List[str] = []
+        num_better_than_odds: int = 0
         for game in games:
             winning_team: Team = game.get_winner()
             winning_rank: int = ranking[winning_team.get_name()]
@@ -86,11 +104,19 @@ def main(ranking_filename: str, compare_predict: str = "predict"):
                 rank_diff: int = abs(winning_rank - losing_rank)
                 upsets.append((rank_diff, f"{winning_team.get_name()} ({winning_rank}) def. {losing_team.get_name()} ({losing_rank}): {rank_diff} difference"))
 
+            if projected_winner != game.get_odds_favorite_team():
+                projs_differ.append(f"{winning_team.get_name()} def. {losing_team.get_name()}, sportsbook selected {game.get_odds_favorite_team().get_name()}, ranking selected {projected_winner.get_name()}")
+                if projected_winner == winning_team:
+                    num_better_than_odds += 1
+
         print(f"Correctly predicted {num_correct/len(games):.2%} ({num_correct}/{len(games)})")
         upsets = sorted(upsets, key=lambda x: x[0], reverse=True)
         print("Biggest upsets:")
         for i in range(len(upsets)):
             print("\t", upsets[i][1])
+        print(f"Differ from sportsbook favorites: {num_better_than_odds/len(projs_differ):.2%} ({num_better_than_odds}/{len(projs_differ)})")
+        for diff in projs_differ:
+            print("\t", diff)
     else:
         games = get_games_to_play(False)
         for game in games:
