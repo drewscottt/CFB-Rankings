@@ -26,7 +26,7 @@ class Team:
     ignore_all_non_fbs: bool = True
     ignore_wins_vs_non_fbs: bool = True
 
-    def __init__(self, team_name: str, conference: str):
+    def __init__(self, team_name: str, conference: str = ""):
         self.team_name: str = team_name
         self.conference: str = conference
         self.games: List[cfb_module.Game] = []

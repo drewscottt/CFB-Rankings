@@ -137,9 +137,9 @@ def process_game(result_span, team: Team, trunc_to_full: Dict[str, str], teams_s
 
     return game, opp_team
 
-def read_all_results(team_pages_dir: str = "teams/") -> Set[Team]:
+def read_all_results(team_pages_dir: str) -> Set[Team]:
     espn_url: str = "https://www.espn.com"
-    team_links_filename: str = "teams_links.csv"
+    team_links_filename: str = "team_links.csv"
     
     teams_trunc_filename: str = "teams_trunc.csv"
     trunc_to_full: Dict[str, str] = {}
@@ -154,4 +154,5 @@ def read_all_results(team_pages_dir: str = "teams/") -> Set[Team]:
     return fbs_seen
                 
 if __name__ == "__main__":
-    read_all_results()
+    read_all_results(sys.argv[1])
+    

@@ -70,6 +70,20 @@ class Game:
         else:
             return self.away_team
 
+    def get_home_team(self) -> cfb_module.Team:
+        '''
+            Returns the home team
+        '''
+
+        return self.home_team
+
+    def get_away_team(self) -> cfb_module.Team:
+        '''
+            Returns the away team
+        '''
+
+        return self.away_team
+
     def get_adj_victory_margin(self) -> float:
         '''
             Returns the absolute difference between the two adjusted scores of this game

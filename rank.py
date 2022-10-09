@@ -1,6 +1,7 @@
 from typing import List, Dict, Set, Tuple
-import read_results, read_schedule
+import read_teams_results
 from cfb_module import Team, Game
+import sys
 
 def compare_rankings(rank1: List[Team], rank2: List[Team], n_biggest_diff: int = 5):
     '''
@@ -91,22 +92,22 @@ def read_ranking(filename: str) -> List[Team]:
     with open(filename, "r") as f:
         for line in f:
             team_name: str = " ".join(line.split(" ")[1:-1])
-            team: Team = Team(team_name, "", "")
+            team: Team = Team(team_name)
             ranking.append(team)
     return ranking
 
-def main():
+def main(teams_directory):
     Game.away_disadvantage = 2
     Game.winner_bonus = 5
     Game.non_fbs_loss_multiplier = 3
     Team.ignore_all_non_fbs = False
     Team.ignore_wins_vs_non_fbs = True
 
-    fbs_seen: Set[Team] = read_results.read_all_results()
+    # fbs_seen: Set[Team] = read_teams_results.read_all_results(teams_directory)
 
-    rank1 = sorted(list(fbs_seen), key=lambda Team: Team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0,exclude_team_result_from_opp=True), reverse=True)
-    for i, team in enumerate(rank1):
-        print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0,exclude_team_result_from_opp=True)})")
+    # rank1 = sorted(list(fbs_seen), key=lambda Team: Team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0,exclude_team_result_from_opp=True), reverse=True)
+    # for i, team in enumerate(rank1):
+    #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0,exclude_team_result_from_opp=True)})")
 
     # for i, team in enumerate(filter_ranking(rank1, "American")):
     #     print(f"{i+1}. ({team[1]+1}) {team[0].get_name()} ({team[0].get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0,exclude_team_result_from_opp=True)})")
@@ -115,7 +116,7 @@ def main():
     # for i, team in enumerate(rank2):
     #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
 
-    # compare_rankings(read_ranking("past_rankings/2022-week6.txt"), rank1)
+    compare_rankings(read_ranking("rankings/2022-week6.txt"), read_ranking("rankings/2022-week7.txt"))
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1])
