@@ -1,5 +1,5 @@
 from typing import List, Dict, Set, Tuple
-import read_data
+import read_results, read_schedule
 from cfb_module import Team, Game
 
 def compare_rankings(rank1: List[Team], rank2: List[Team], n_biggest_diff: int = 5):
@@ -50,11 +50,11 @@ def compare_rankings(rank1: List[Team], rank2: List[Team], n_biggest_diff: int =
         print(f"\t{tup[0]}: {tup[1]} ({rank1_dict[tup[0]]+1} -> {rank2_dict[tup[0]]+1})")
 
     # compute which teams exited/entered the top 25
-    rank1_top25: Set[str] = set()
-    rank2_top25: Set[str] = set()
+    rank1_top25: Dict[str, int] = {}
+    rank2_top25: Dict[str, int] = {}
     for i in range(25):
-        rank1_top25.add(rank1[i].get_name())
-        rank2_top25.add(rank2[i].get_name())
+        rank1_top25[rank1[i].get_name()] = i
+        rank2_top25[rank2[i].get_name()] = i
     print("Dropped from Top 25:")
     for team_name in rank1_top25:
         if team_name not in rank2_top25:
@@ -63,6 +63,12 @@ def compare_rankings(rank1: List[Team], rank2: List[Team], n_biggest_diff: int =
     for team_name in rank2_top25:
         if team_name not in rank1_top25:
             print(f"\t{team_name}")
+    for i in range(25):
+        team_name = rank2[i].get_name()
+        if team_name not in rank1_top25:
+            print(f"{i+1}. {team_name} NEW")
+        else:
+            print(f"{i+1}. {team_name} {(rank1_top25[team_name] - i):+d}")
         
 def filter_ranking(ranking: List[Team], conference: str) -> List[Tuple[Team, int]]:
     '''
@@ -96,7 +102,7 @@ def main():
     Team.ignore_all_non_fbs = False
     Team.ignore_wins_vs_non_fbs = True
 
-    fbs_seen: Set[Team] = read_data.process_data()
+    fbs_seen: Set[Team] = read_results.read_all_results()
 
     rank1 = sorted(list(fbs_seen), key=lambda Team: Team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0,exclude_team_result_from_opp=True), reverse=True)
     for i, team in enumerate(rank1):
@@ -109,7 +115,7 @@ def main():
     # for i, team in enumerate(rank2):
     #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
 
-    compare_rankings(read_ranking("past_rankings/2022-week6.txt"), rank1)
+    # compare_rankings(read_ranking("past_rankings/2022-week6.txt"), rank1)
 
 if __name__ == "__main__":
     main()

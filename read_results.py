@@ -23,7 +23,7 @@ def get_espn_team_links(espn_url: str, team_links_filename: str):
             with open(team_links_filename, "a") as f:
                 f.write(f"{team_link['href']}\n")
 
-def get_teams(espn_url: str, team_links_filename: str, team_pages_dir: str, trunc_to_full: Dict[str, str]) -> Tuple[Set[Team], Dict[str, Team]]:
+def get_teams(espn_url: str, team_links_filename: str, team_pages_dir: str) -> Tuple[Set[Team], Dict[str, Team]]:
     # read each team
     teams_seen: Dict[str, Team] = {}
     fbs_seen: Set[Team] = set()
@@ -42,12 +42,11 @@ def get_teams(espn_url: str, team_links_filename: str, team_pages_dir: str, trun
             # process team page to get the team name
             team_soup: BeautifulSoup = BeautifulSoup(team_content, "html.parser")
             team_name: str = team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap fw-bold"}).text
+            if team_name[:7] == "San Jos":
+                # TODO: awful hack
+                team_name = "San Jose State"
             team_conf: str = " ".join(team_soup.find("section", {"class": "Card TeamStandings"}).find("h3", {"class": "Card__Header__Title"}).text.split(" ")[1:-1])
-            team: Optional[Team] = None
-            if team_name in trunc_to_full:
-                team = Team(team_name, trunc_to_full[team_name], team_conf)
-            else:
-                team = Team(team_name, team_name, team_conf)
+            team: Team = Team(team_name, team_conf)
             
             team.set_fbs(True)
             teams_seen[team_name] = team
@@ -67,11 +66,10 @@ def process_games(team_links_filename: str, team_pages_dir: str, fbs_seen: Set[T
             # process team page to get the team name
             team_soup: BeautifulSoup = BeautifulSoup(team_content, "html.parser")
             team_name: str = team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap fw-bold"}).text
-            team: Optional[Team] = None
-            if team_name in trunc_to_full:
-                team = teams_seen[trunc_to_full[team_name]]
-            else:
-                team = teams_seen[team_name]
+            if team_name[:7] == "San Jos":
+                # TODO: awful hack
+                team_name = "San Jose State"
+            team: Team = teams_seen[team_name]
 
             # process all the game results for the team
             result_spans = team_soup.find_all("span", {"class": "Schedule__Result"})
@@ -99,7 +97,7 @@ def process_game(result_span, team: Team, trunc_to_full: Dict[str, str], teams_s
     if game_opp_full in teams_seen:
         opp_team = teams_seen[game_opp_full]
     else:
-        opp_team = Team(game_opp_full, game_opp_trunc, "FCS")
+        opp_team = Team(game_opp_full, "FCS")
         teams_seen[game_opp_full] = opp_team
 
     # determine home/away
@@ -139,7 +137,7 @@ def process_game(result_span, team: Team, trunc_to_full: Dict[str, str], teams_s
 
     return game, opp_team
 
-def process_data(team_pages_dir: str = "teams/") -> Set[Team]:
+def read_all_results(team_pages_dir: str = "teams/") -> Set[Team]:
     espn_url: str = "https://www.espn.com"
     team_links_filename: str = "teams_links.csv"
     
@@ -150,10 +148,10 @@ def process_data(team_pages_dir: str = "teams/") -> Set[Team]:
             trunc_to_full[line.split(",")[1].strip()] = line.split(",")[0]
     
     get_espn_team_links(espn_url, team_links_filename)
-    fbs_seen, teams_seen = get_teams(espn_url, team_links_filename, team_pages_dir, trunc_to_full)
+    fbs_seen, teams_seen = get_teams(espn_url, team_links_filename, team_pages_dir)
     process_games(team_links_filename, team_pages_dir, fbs_seen, teams_seen, trunc_to_full)
 
     return fbs_seen
                 
 if __name__ == "__main__":
-    process_data()
+    read_all_results()
