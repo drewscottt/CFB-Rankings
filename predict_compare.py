@@ -3,15 +3,36 @@ from bs4 import BeautifulSoup
 from typing import List, Tuple, Dict
 import sys
 import os.path
+import json
 from cfb_module import Game, Team
 
+def read_mls(game_page, abbrevs):
+    game_soup = BeautifulSoup(game_page, "html.parser")
+    target_script = game_soup.find("script", {"src": "https://a.espncdn.com/redesign/0.613.0/js/espn-critical.js"}).next_sibling.next_sibling.string
+    target_script = target_script[target_script.index("data: {\"sports\":") + len("data: "):]
+    target_script = target_script[:target_script.index(",\\n")]
+    target_script = target_script.replace("\\'", "")
+    games = json.loads(target_script)["sports"][0]["leagues"][0]["events"]
+    for game in games:
+        away_team_abbrev = game["odds"]["awayTeamOdds"]["team"]["abbreviation"]
+        away_team_name = abbrevs[away_team_abbrev]
+        away_ml = game["odds"]["away"]["moneyLine"]
+        home_team_abbrev = game["odds"]["homeTeamOdds"]["team"]["abbreviation"]
+        home_team_name = abbrevs[home_team_abbrev]
+        home_ml = game["odds"]["home"]["moneyLine"]
+
+        print(away_team_name, away_ml, home_team_name, home_ml)
+
+
 def get_games_to_play(get_results: bool, abbrevs: Dict[str, str] = {}) -> List[Game]:
-    schedule_url = "https://www.espn.com/college-football/schedule"
+    schedule_url = "https://www.espn.com/college-football/schedule/_/week/6/year/2022/seasontype/2"
     schedule = requests.get(schedule_url).content
     soup = BeautifulSoup(schedule, 'html.parser')
 
     games_to_play: List[Game] = []
+    mls = {}
     game_days = soup.find_all("div", {"class": "ScheduleTables mb5 ScheduleTables--ncaaf ScheduleTables--football"})
+    have_read_mls = False
     for game_day in game_days:
         games = game_day.find_all("tr", {"class": "Table__TR Table__TR--sm Table__even"})
         for game in games:
@@ -31,7 +52,7 @@ def get_games_to_play(get_results: bool, abbrevs: Dict[str, str] = {}) -> List[G
                 except AttributeError:
                     continue
 
-                result_filename = "results/" + result_url.split("=")[1]
+                result_filename = os.path.join("game_pages", result_url.split("=")[1])
                 if not os.path.isfile(result_filename):
                     result = requests.get(result_url).content
                     with open(result_filename, "w") as f:
@@ -39,6 +60,10 @@ def get_games_to_play(get_results: bool, abbrevs: Dict[str, str] = {}) -> List[G
                 else:
                     with open(result_filename, "r") as f:
                         result = f.read()
+
+                # if not have_read_mls:
+                #     read_mls(result, abbrevs)
+                #     have_read_mls = True
 
                 # get the results of the game
                 result_soup = BeautifulSoup(result, "html.parser")
@@ -55,10 +80,10 @@ def get_games_to_play(get_results: bool, abbrevs: Dict[str, str] = {}) -> List[G
                 if odds_favorite[:7] == "San Jos":
                     # TODO: awful hack
                     odds_favorite = "San Jose State"
-                odds_line = float(odds.split(" ")[2])
+                spread = float(odds.split(" ")[2])
 
                 game = Game(Team(home_team_name), Team(away_team_name), False, home_score, away_score)
-                game.set_odds(odds_favorite, odds_line)
+                game.set_odds(odds_favorite, spread)
                 games_to_play.append(game)
             else:
                 games_to_play.append(Game(Team(home_team_name), Team(away_team_name), False, 0, 0))
@@ -88,7 +113,7 @@ def main(ranking_filename: str, compare_predict: str = "predict"):
         num_correct: int = 0
         upsets: List[Tuple[int, str]] = []
         projs_differ: List[str] = []
-        num_better_than_odds: int = 0
+        num_beat_ml: int = 0
         for game in games:
             winning_team: Team = game.get_winner()
             winning_rank: int = ranking[winning_team.get_name()]
@@ -106,16 +131,16 @@ def main(ranking_filename: str, compare_predict: str = "predict"):
                 upsets.append((rank_diff, f"{winning_team.get_name()} ({winning_rank}) def. {losing_team.get_name()} ({losing_rank}): {rank_diff} difference"))
 
             if projected_winner != game.get_odds_favorite_team():
-                projs_differ.append(f"{winning_team.get_name()} def. {losing_team.get_name()}: sportsbook selected {game.get_odds_favorite_team().get_name()} ({game.get_odds_line()}), ranking selected {projected_winner.get_name()}")
+                projs_differ.append(f"{winning_team.get_name()} def. {losing_team.get_name()}: sportsbook selected {game.get_odds_favorite_team().get_name()} ({game.get_spread()}), ranking selected {projected_winner.get_name()}")
                 if projected_winner == winning_team:
-                    num_better_than_odds += 1
+                    num_beat_ml += 1
 
         print(f"Correctly predicted {num_correct/len(games):.2%} ({num_correct}/{len(games)})")
         upsets = sorted(upsets, key=lambda x: x[0], reverse=True)
         print("Biggest upsets:")
         for i in range(len(upsets)):
             print("\t", upsets[i][1])
-        print(f"Differ from sportsbook favorites: {num_better_than_odds/len(projs_differ):.2%} ({num_better_than_odds}/{len(projs_differ)})")
+        print(f"Differ from sportsbook favorites: {num_beat_ml/len(projs_differ) if len(projs_differ) > 0 else 0:.2%} ({num_beat_ml}/{len(projs_differ)})")
         for diff in projs_differ:
             print("\t", diff)
     else:

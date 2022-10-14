@@ -33,7 +33,7 @@ There are two main files:
 
     ```python3 rank.py <team_directory>```
 
-    ```python3 rank.py teams/2022-week6-results/```
+    ```python3 rank.py team_pages/2022-week6-results/```
 
 * predict_compare.py: Used to predict an upcoming week of games based on a previously generated ranking, or compare a week of results to a given ranking.
 

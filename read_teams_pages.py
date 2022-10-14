@@ -30,7 +30,7 @@ def get_teams(espn_url: str, team_links_filename: str, team_pages_dir: str) -> T
     with open(team_links_filename, "r") as f:
         for team_link in f:
             # either read team page from espn.com or from locally saved
-            team_filename: str = f"{team_pages_dir}{team_link.split('/')[-1].strip()}"
+            team_filename: str = os.path.join(team_pages_dir, team_link.split('/')[-1].strip())
             if not os.path.isfile(team_filename):
                 team_content: str = requests.get(f"{espn_url}{team_link}").content.decode("utf-8")
                 with open(team_filename, "w") as f:
@@ -59,7 +59,7 @@ def process_games(team_links_filename: str, team_pages_dir: str, fbs_seen: Set[T
     with open(team_links_filename, "r") as f:
         for team_link in f:
             # read team espn page from local save
-            team_filename: str = f"{team_pages_dir}{team_link.split('/')[-1].strip()}"
+            team_filename: str = os.path.join(team_pages_dir, team_link.split('/')[-1].strip())
             with open(team_filename, "r") as f:
                 team_content = f.read()
             
@@ -137,7 +137,7 @@ def process_game(result_span, team: Team, trunc_to_full: Dict[str, str], teams_s
 
     return game, opp_team
 
-def read_all_results(team_pages_dir: str) -> Set[Team]:
+def read_all_pages(team_pages_dir: str) -> Set[Team]:
     espn_url: str = "https://www.espn.com"
     team_links_filename: str = "team_links.csv"
     

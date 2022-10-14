@@ -22,6 +22,7 @@ class Game:
     away_disadvantage: float = 0
     winner_bonus: float = 0
     non_fbs_loss_multiplier: float = 1
+    adj_margin_max: float = float('inf')
 
     def __init__(self, home_team: cfb_module.Team, away_team: cfb_module.Team, neutral_game: bool, home_score: int, away_score: int):
         self.home_team: cfb_module.Team = home_team
@@ -38,7 +39,7 @@ class Game:
             self.adj_away_score += Game.winner_bonus
 
         self.odds_favorite_team: Optional[cfb_module.Team] = None
-        self.odds_line: float = 0
+        self.spread: float = 0
 
     def get_opponent(self, team) -> Optional[cfb_module.Team]:
         '''
@@ -87,7 +88,7 @@ class Game:
 
         return self.away_team
 
-    def set_odds(self, favorite_name: str, line: float):
+    def set_odds(self, favorite_name: str, spread: float):
         '''
             Sets the odds favorite team based on team name
         '''
@@ -99,7 +100,7 @@ class Game:
         else:
             self.odds_favorite_team = None
 
-        self.odds_line = line
+        self.spread = spread
 
     def get_odds_favorite_team(self) -> Optional[cfb_module.Team]:
         '''
@@ -108,22 +109,23 @@ class Game:
 
         return self.odds_favorite_team
 
-    def get_odds_line(self) -> int:
+    def get_spread(self) -> float:
         '''
             Returns the odds line for the game
         '''
 
-        return self.odds_line
+        return self.spread
 
     def get_adj_victory_margin(self) -> float:
         '''
             Returns the absolute difference between the two adjusted scores of this game
         '''
 
+        margin: float = abs(self.adj_home_score - self.adj_away_score)
         if not self.get_winner().is_fbs:
-            return Game.non_fbs_loss_multiplier * abs(self.adj_home_score - self.adj_away_score)
+            margin *= Game.non_fbs_loss_multiplier
 
-        return abs(self.adj_home_score - self.adj_away_score)
+        return min(margin, Game.adj_margin_max)
 
     def __str__(self) -> str:
         return f"{self.away_team.get_name()} ({self.away_score}) @ {self.home_team.get_name()} ({self.home_score})"
