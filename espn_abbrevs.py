@@ -1,3 +1,10 @@
+'''
+File: espn_abbrevs.py
+Description: Extracts the full team name to abbreviations from ESPN team webpage,
+    then writes these pairs to espn_abbrevs.csv
+Usage: python3 espn_abbrevs.py
+'''
+
 from typing import Dict
 from bs4 import BeautifulSoup
 import json
@@ -21,7 +28,7 @@ def main():
                     opp_abbrev = game["opponentAbbreviation"]
                     name_to_abbrev[opp_name] = opp_abbrev
 
-    with open("espn_abbrevs.csv", "w") as f:
+    with open("espn_team_abbrevs.csv", "w") as f:
         for name, abbrev in name_to_abbrev.items():
             f.write(f"{name},{abbrev}\n")
 

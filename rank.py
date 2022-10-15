@@ -1,3 +1,9 @@
+'''
+File: rank.py
+Description:
+Usage: python3 rank.py <team pages directory>
+'''
+
 from typing import List, Dict, Set, Tuple
 import read_teams_pages
 from cfb_module import Team, Game
@@ -103,7 +109,7 @@ def main(teams_directory):
     Team.ignore_all_non_fbs = False
     Team.ignore_wins_vs_non_fbs = True
 
-    fbs_seen: Set[Team] = read_teams_pages.read_all_pages(teams_directory)
+    fbs_seen: Set[Team] = read_teams_pages.main(teams_directory)
 
     rank1 = sorted(list(fbs_seen), key=lambda Team: Team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0,exclude_team_result_from_opp=True), reverse=True)
     for i, team in enumerate(rank1):

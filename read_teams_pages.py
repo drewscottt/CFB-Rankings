@@ -9,7 +9,7 @@ def get_espn_team_links(espn_url: str, team_links_filename: str):
     # read all of the team links from espn, if they haven't already
     if not os.path.isfile(team_links_filename):
         espn_teams_url: str = f"{espn_url}/college-football/teams"
-        teams_content: str = requests.get(espn_teams_url).content
+        teams_content: str = requests.get(espn_teams_url).text
         teams_soup: BeautifulSoup = BeautifulSoup(teams_content, "html.parser")
 
         team_link_prefix: str = "/college-football/team/_/id/"
@@ -30,9 +30,9 @@ def get_teams(espn_url: str, team_links_filename: str, team_pages_dir: str) -> T
     with open(team_links_filename, "r") as f:
         for team_link in f:
             # either read team page from espn.com or from locally saved
-            team_filename: str = os.path.join(team_pages_dir, team_link.split('/')[-1].strip())
+            team_filename: str = os.path.join(team_pages_dir, team_link.split('/')[-1].strip() + ".html")
             if not os.path.isfile(team_filename):
-                team_content: str = requests.get(f"{espn_url}{team_link}").content.decode("utf-8")
+                team_content: str = requests.get(f"{espn_url}{team_link}").text.decode("utf-8")
                 with open(team_filename, "w") as f:
                     f.write(team_content)
             else:
@@ -59,7 +59,7 @@ def process_games(team_links_filename: str, team_pages_dir: str, fbs_seen: Set[T
     with open(team_links_filename, "r") as f:
         for team_link in f:
             # read team espn page from local save
-            team_filename: str = os.path.join(team_pages_dir, team_link.split('/')[-1].strip())
+            team_filename: str = os.path.join(team_pages_dir, team_link.split('/')[-1].strip() + ".html")
             with open(team_filename, "r") as f:
                 team_content = f.read()
             
@@ -137,11 +137,11 @@ def process_game(result_span, team: Team, trunc_to_full: Dict[str, str], teams_s
 
     return game, opp_team
 
-def read_all_pages(team_pages_dir: str) -> Set[Team]:
+def main(team_pages_dir: str) -> Set[Team]:
     espn_url: str = "https://www.espn.com"
-    team_links_filename: str = "team_links.csv"
+    team_links_filename: str = "team_links.txt"
     
-    teams_trunc_filename: str = "teams_trunc.csv"
+    teams_trunc_filename: str = "espn_team_truncs.csv"
     trunc_to_full: Dict[str, str] = {}
     with open(teams_trunc_filename, "r") as f:
         for line in f:
@@ -154,5 +154,5 @@ def read_all_pages(team_pages_dir: str) -> Set[Team]:
     return fbs_seen
                 
 if __name__ == "__main__":
-    read_all_results(sys.argv[1])
+    main(sys.argv[1])
     

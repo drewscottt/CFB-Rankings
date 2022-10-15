@@ -38,8 +38,10 @@ class Game:
         else:
             self.adj_away_score += Game.winner_bonus
 
-        self.odds_favorite_team: Optional[cfb_module.Team] = None
+        self.sportsbook_favorite: Optional[cfb_module.Team] = None
         self.spread: float = 0
+        self.home_ml: float = 0
+        self.away_ml: float = 0
 
     def get_opponent(self, team) -> Optional[cfb_module.Team]:
         '''
@@ -94,20 +96,28 @@ class Game:
         '''
 
         if self.home_team.get_name() == favorite_name:
-            self.odds_favorite_team = self.home_team
+            self.sportsbook_favorite = self.home_team
         elif self.away_team.get_name() == favorite_name:
-            self.odds_favorite_team = self.away_team
+            self.sportsbook_favorite = self.away_team
         else:
-            self.odds_favorite_team = None
+            self.sportsbook_favorite = None
 
         self.spread = spread
 
-    def get_odds_favorite_team(self) -> Optional[cfb_module.Team]:
+    def set_mls(self, home_ml: int, away_ml: int):
+        '''
+            Sets the moneylines for the home and away teams
+        '''
+        
+        self.home_ml = home_ml
+        self.away_ml = away_ml
+
+    def get_sportsbook_favorite(self) -> Optional[cfb_module.Team]:
         '''
             Returns the odds favorite team
         '''
 
-        return self.odds_favorite_team
+        return self.sportsbook_favorite
 
     def get_spread(self) -> float:
         '''
@@ -115,6 +125,26 @@ class Game:
         '''
 
         return self.spread
+
+    def get_winner_ml(self) -> int:
+        '''
+            Returns the moneyline of the winning team; 0 if it wasn't set
+        '''
+
+        if self.home_team == self.get_winner():
+            return self.home_ml
+        else:
+            return self.away_ml
+
+    def get_loser_ml(self) -> int:
+        '''
+            Returns the moneyline of the losing team; 0 if it wasn't set
+        '''
+
+        if self.home_team == self.get_loser():
+            return self.home_ml
+        else:
+            return self.away_ml
 
     def get_adj_victory_margin(self) -> float:
         '''

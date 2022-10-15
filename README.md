@@ -27,7 +27,7 @@ Note: calculating the "result factor" of the game metric is used by counting rea
 
 ## Usage
 
-There are two main files:
+There are two main programs:
 
 * rank.py: Used to compute a ranking, or compare rankings.
 
@@ -35,13 +35,13 @@ There are two main files:
 
     ```python3 rank.py team_pages/2022-week6-results/```
 
-* predict_compare.py: Used to predict an upcoming week of games based on a previously generated ranking, or compare a week of results to a given ranking.
+* predict_analyze.py: Used to predict a schedule of games based on a previously generated ranking, or analyze a schedule of results and sportsbook predictions in relation to a ranking.
 
-    ```python3 predict_compare.py <ranking_filename> <predict_compare>```
+    ```python3 predict_analyze.py <ranking_filename> <predict_analyze> <optional: espn_schedule_url>```
 
-    ```python3 predict_compare.py past_rankings/2022-week6.txt predict```
+    ```python3 predict_analyze.py past_rankings/2022-week6.txt predict```
 
-    ```python3 predict_compare.py past_rankings/2022-week6.txt compare```
+    ```python3 predict_analyze.py past_rankings/2022-week6.txt analyze```
 
 ## Current Top 25
 
