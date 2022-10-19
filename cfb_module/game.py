@@ -23,6 +23,7 @@ class Game:
     winner_bonus: float = 0
     non_fbs_loss_multiplier: float = 1
     adj_margin_max: float = float('inf')
+    non_fbs_bonus: float = 0
 
     def __init__(self, home_team: cfb_module.Team, away_team: cfb_module.Team, neutral_game: bool, home_score: int, away_score: int):
         self.home_team: cfb_module.Team = home_team
@@ -37,6 +38,11 @@ class Game:
             self.adj_home_score += Game.winner_bonus
         else:
             self.adj_away_score += Game.winner_bonus
+
+        if not self.home_team.is_fbs:
+            self.adj_home_score += Game.non_fbs_bonus
+        if not self.away_team.is_fbs:
+            self.adj_away_score += Game.non_fbs_bonus
 
         self.sportsbook_favorite: Optional[cfb_module.Team] = None
         self.spread: float = 0
@@ -75,6 +81,26 @@ class Game:
             return self.home_team
         else:
             return self.away_team
+
+    def get_adj_loser(self) -> cfb_module.Team:
+        '''
+            Returns the team with the lower adjusted score
+        '''
+        
+        if self.adj_home_score > self.adj_away_score:
+            return self.away_team
+        else:
+            return self.home_team
+
+    def get_adj_winner(self) -> cfb_module.Team:
+        '''
+            Returns the team with the lower adjusted score
+        '''
+        
+        if self.adj_home_score < self.adj_away_score:
+            return self.away_team
+        else:
+            return self.home_team
 
     def get_home_team(self) -> cfb_module.Team:
         '''

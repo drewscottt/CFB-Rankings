@@ -30,7 +30,7 @@
 30. Coastal Carolina (12.615000000000002)
 31. LSU (12.48)
 32. Notre Dame (12.175)
-33. San Jose State (11.758333333333333)
+33. San José State (11.758333333333333)
 34. Baylor (11.345833333333333)
 35. Florida State (11.09)
 36. Washington State (10.520000000000001)

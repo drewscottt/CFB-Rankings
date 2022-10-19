@@ -9,7 +9,7 @@ Usage:
 
 import requests
 from bs4 import BeautifulSoup
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 import sys
 import os.path
 import json
@@ -40,20 +40,20 @@ def process_game_result(result_url: str, game_data: dict, abbrevs: Dict[str, str
     if away_score > home_score:
         winning_team_name = game_data["away_team_name"]
 
-    # parse the results page, getting the sportsbook prediction
-    odds = result_soup.find("div", {"class": "odds-lines-plus-logo"}).find("ul").find("li").text
-    odds_favorite = abbrevs[odds.split(" ")[1]]
-    if odds_favorite[:7] == "San Jos":
-        # TODO: awful hack
-        odds_favorite = "San Jose State"
-    spread = float(odds.split(" ")[2])
-
-    # fill in game_data with this data
-    game_data["odds_favorite"] = odds_favorite
-    game_data["spread"] = spread
     game_data["home_score"] = home_score
     game_data["away_score"] = away_score
     game_data["winning_team_name"] = winning_team_name
+
+    # parse the results page, getting the sportsbook prediction
+    try:
+        odds = result_soup.find("div", {"class": "odds-lines-plus-logo"}).find("ul").find("li").text
+        sportsbook_favorite = abbrevs[odds.split(" ")[1]]
+        spread = float(odds.split(" ")[2])
+
+        game_data["sportsbook_favorite"] = sportsbook_favorite
+        game_data["spread"] = spread
+    except AttributeError:
+        return
 
 def process_game_preview(preview_url: str, game_data: dict):
     '''
@@ -70,8 +70,8 @@ def process_game_preview(preview_url: str, game_data: dict):
         try:
             pick_center = soup.find("div", {"class": "pick-center-content"})
             re.DOTALL = True
-            home_moneyline = pick_center.find("td", text=re.compile(".*Money Line.*")).next_sibling.next_sibling.text.replace("\\", "").replace("n", "").replace("t", "")
-            away_moneyline = pick_center.find("td", text=re.compile(".*Money Line.*")).previous_sibling.previous_sibling.text.replace("\\", "").replace("n", "").replace("t", "")
+            home_moneyline = pick_center.find("td", text=re.compile(".*Money Line.*")).next_sibling.next_sibling.text.strip()
+            away_moneyline = pick_center.find("td", text=re.compile(".*Money Line.*")).previous_sibling.previous_sibling.text.strip()
             if home_moneyline != "--" and away_moneyline != "--":
                 game_data["home_ml"] = int(home_moneyline.replace(",", ""))
                 game_data["away_ml"] = int(away_moneyline.replace(",", ""))
@@ -99,21 +99,13 @@ def get_games_to_play(get_results: bool, schedule_url: str, abbrevs: Dict[str, s
     soup = BeautifulSoup(schedule, 'html.parser')
 
     games_to_play: List[Game] = []
-    mls = {}
     game_days = soup.find_all("div", {"class": "ScheduleTables mb5 ScheduleTables--ncaaf ScheduleTables--football"})
-    have_read_mls = False
     for game_day in game_days:
         games = game_day.find_all("tr", {"class": "Table__TR Table__TR--sm Table__even"})
         for game in games:
             teams = game.find_all("span", {"class": "Table__Team"})
             away_team_name: str = teams[0].find_all("a")[1].text
-            if away_team_name[:7] == "San Jos":
-                # TODO: awful hack
-                away_team_name = "San Jose State"
             home_team_name: str = teams[1].find_all("a")[1].text
-            if home_team_name[:7] == "San Jos":
-                # TODO: awful hack
-                home_team_name = "San Jose State"
 
             if not get_results:
                 # we don't need to extract the game's results, so we have all we need
@@ -129,9 +121,10 @@ def get_games_to_play(get_results: bool, schedule_url: str, abbrevs: Dict[str, s
                     process_game_result(result_url, game_data, abbrevs)
 
                     game = Game(Team(home_team_name), Team(away_team_name), False, game_data["home_score"], game_data["away_score"])
-                    game.set_odds(game_data["odds_favorite"], game_data["spread"])
-                    if "home_ml" in game_data:
-                        print(home_team_name, game_data["home_ml"], away_team_name, game_data["away_ml"])
+                    if "sportsbook_favorite" in game_data and "spread" in game_data:
+                        game.set_odds(game_data["sportsbook_favorite"], game_data["spread"])
+                    
+                    if "home_ml" in game_data and "away_ml" in game_data:
                         game.set_mls(game_data["home_ml"], game_data["away_ml"])
 
                     games_to_play.append(game)
@@ -151,8 +144,12 @@ def predict_games(ranking: Dict[str, str], espn_schedule_url: str):
     games: List[Game] = get_games_to_play(False, espn_schedule_url)
     for game in games:
         home_team: Team = game.get_home_team()
-        home_rank: int = ranking[home_team.get_name()]
         away_team: Team = game.get_away_team()
+
+        if home_team.get_name() not in ranking or away_team.get_name() not in ranking:
+            continue
+
+        home_rank: int = ranking[home_team.get_name()]
         away_rank: int = ranking[away_team.get_name()]
 
         if home_rank < away_rank:
@@ -178,15 +175,22 @@ def analyze_predictions(ranking: Dict[str, str], espn_schedule_url: str):
     # go through each game, and summarize data about the prediction
     num_correct: int = 0
     upsets: List[Tuple[int, str]] = []
-    projs_differ: List[str] = []
+    games_diff_sportsbook: List[str] = []
     num_beat_ml: int = 0
     total_revenue: float = 0
     games_with_ml: int = 0
+    games_predicted: int = 0
     for game in games:
         winning_team: Team = game.get_winner()
+        losing_team: Team = game.get_loser()
+
+        if winning_team.get_name() not in ranking or losing_team.get_name() not in ranking:
+            continue
+
+        games_predicted += 1
+
         winner_ml: int = game.get_winner_ml()
         winning_rank: int = ranking[winning_team.get_name()]
-        losing_team: Team = game.get_loser()
         losing_rank: int = ranking[losing_team.get_name()]
 
         rankings_favorite: Team = winning_team
@@ -205,33 +209,32 @@ def analyze_predictions(ranking: Dict[str, str], espn_schedule_url: str):
             rank_diff: int = abs(winning_rank - losing_rank)
             upsets.append((rank_diff, f"{winning_team.get_name()} ({winning_rank}) def. {losing_team.get_name()} ({losing_rank}): {rank_diff} difference"))
             if winner_ml != 0:
-                print(winning_team.get_name(), losing_team.get_name())
                 games_with_ml += 1
-                net_profit -= 100
+                total_revenue -= 100
 
         sportsbook_favorite: Optional[Team] = game.get_sportsbook_favorite()
         if sportsbook_favorite is not None and rankings_favorite != sportsbook_favorite:
-            projs_differ.append(f"{winning_team.get_name()} def. {losing_team.get_name()}: sportsbook selected {sportsbook_favorite.get_name()} ({game.get_spread()}), ranking selected {rankings_favorite.get_name()}")
+            games_diff_sportsbook.append(f"{winning_team.get_name()} def. {losing_team.get_name()}: sportsbook selected {sportsbook_favorite.get_name()} ({game.get_spread()}), ranking selected {rankings_favorite.get_name()}")
             if rankings_favorite == winning_team:
                 num_beat_ml += 1
 
-    print(f"Correctly predicted {num_correct/len(games):.2%} ({num_correct}/{len(games)})")
+    print(f"Correctly predicted {num_correct/games_predicted:.2%} ({num_correct}/{games_predicted})")
     upsets = sorted(upsets, key=lambda x: x[0], reverse=True)
-    amount_wagered = 100*games_with_ml
     
     print("Biggest upsets:")
     for i in range(len(upsets)):
         print("\t", upsets[i][1])
-    
+
+    amount_wagered = 100*games_with_ml
     print(f"If you bet $100 on each game (${amount_wagered:,} total) with an ML available ({games_with_ml}) on the ML of the ranking's projected winner, you ended up with ${total_revenue:,.2f}, or ${total_revenue - amount_wagered:,.2f} profit")
     
-    print(f"In games with different projection than sportsbook, {num_beat_ml/len(projs_differ) if len(projs_differ) > 0 else 0:.2%} ({num_beat_ml}/{len(projs_differ)}) games were selected correctly.")
-    for diff in projs_differ:
+    print(f"In games with different projection than sportsbook, {num_beat_ml/len(games_diff_sportsbook) if len(games_diff_sportsbook) > 0 else 0:.2%} ({num_beat_ml}/{len(games_diff_sportsbook)}) games were selected correctly.")
+    for diff in games_diff_sportsbook:
         print("\t", diff)
 
 def main(
     ranking_filename: str,
-    compare_predict: str,
+    compare_analyze: str,
     espn_schedule_url: str = "https://www.espn.com/college-football/schedule/"):
 
     # read the ranking
@@ -242,10 +245,10 @@ def main(
             ranking[team_name] = i + 1
     
     # read the games to play and either compare the results to rankings or predict results
-    if compare_predict == "compare":
+    if compare_analyze == "analyze":
         analyze_predictions(ranking, espn_schedule_url)
     else:
-        predict_games(espn_schedule_url)
+        predict_games(ranking, espn_schedule_url)
 
 if __name__ == "__main__":
     if len(sys.argv) >= 4:

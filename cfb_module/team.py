@@ -113,7 +113,7 @@ class Team:
                 opp_avg_mov = opp_team.get_avg_differential()
                 opp_win_avg = opp_team.get_num_wins() / (opp_team.get_num_wins() + opp_team.get_num_losses())
 
-            if self == game.get_loser():
+            if self == game.get_adj_loser():
                 game_mov = -game.get_adj_victory_margin()
                 result_factor = -loss_factor * (1 - opp_win_avg)
             else:
@@ -161,7 +161,7 @@ class Team:
             if opp_team == exclude_team:
                 continue
 
-            if game.get_loser() == self:
+            if game.get_adj_loser() == self:
                 diff -= game.get_adj_victory_margin()
             else:
                 diff += game.get_adj_victory_margin()

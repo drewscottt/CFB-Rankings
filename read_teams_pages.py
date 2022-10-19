@@ -32,7 +32,7 @@ def get_teams(espn_url: str, team_links_filename: str, team_pages_dir: str) -> T
             # either read team page from espn.com or from locally saved
             team_filename: str = os.path.join(team_pages_dir, team_link.split('/')[-1].strip() + ".html")
             if not os.path.isfile(team_filename):
-                team_content: str = requests.get(f"{espn_url}{team_link}").text.decode("utf-8")
+                team_content: str = requests.get(f"{espn_url}{team_link}").text
                 with open(team_filename, "w") as f:
                     f.write(team_content)
             else:
@@ -42,9 +42,6 @@ def get_teams(espn_url: str, team_links_filename: str, team_pages_dir: str) -> T
             # process team page to get the team name
             team_soup: BeautifulSoup = BeautifulSoup(team_content, "html.parser")
             team_name: str = team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap fw-bold"}).text
-            if team_name[:7] == "San Jos":
-                # TODO: awful hack
-                team_name = "San Jose State"
             team_conf: str = " ".join(team_soup.find("section", {"class": "Card TeamStandings"}).find("h3", {"class": "Card__Header__Title"}).text.split(" ")[1:-1])
             team: Team = Team(team_name, team_conf)
             
@@ -66,9 +63,6 @@ def process_games(team_links_filename: str, team_pages_dir: str, fbs_seen: Set[T
             # process team page to get the team name
             team_soup: BeautifulSoup = BeautifulSoup(team_content, "html.parser")
             team_name: str = team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap fw-bold"}).text
-            if team_name[:7] == "San Jos":
-                # TODO: awful hack
-                team_name = "San Jose State"
             team: Team = teams_seen[team_name]
 
             # process all the game results for the team

@@ -45,34 +45,58 @@ There are two main programs:
 
 ## Current Top 25
 
-1. Ohio State (+1)
-2. Alabama (-1)
-3. Georgia (+0)
+1. Ohio State (+0)
+2. Georgia (+1)
+3. Michigan (+2)
 4. Tennessee (+0)
-5. Michigan (+0)
-6. Clemson (+3)
-7. James Madison (-1)
-8. Ole Miss (+0)
-9. USC (+4)
-10. TCU (-3)
-11. Texas (+9)
-12. UCLA (+0)
-13. Penn State (+1)
-14. Mississippi State (-4)
-15. Syracuse (+3)
-16. Wake Forest (-1)
-17. Minnesota (+2)
-18. Kansas (-7)
-19. Illinois (+3)
-20. Oklahoma State (NEW)
-21. Purdue (NEW)
-22. UCF (NEW)
-23. NC State (+1)
-24. Utah (-1)
-25. Oregon (NEW)
+5. Clemson (+1)
+6. TCU (+4)
+7. Alabama (-5)
+8. Texas (+3)
+9. Ole Miss (-1)
+10. UCLA (+2)
+11. Syracuse (+4)
+12. USC (-3)
+13. Utah (+11)
+14. UCF (+8)
+15. Wake Forest (+1)
+16. Oklahoma State (+4)
+17. James Madison (-10)
+18. Illinois (+1)
+19. Penn State (-6)
+20. Tulane (NEW)
+21. Mississippi State (-7)
+22. Purdue (-1)
+23. Minnesota (-6)
+24. Cincinnati (NEW)
+25. Kansas State (NEW)
 
-    Dropped from last Top 25: Maryland (15), LSU (16), Kansas State (20), Duke (24)
+    Dropped from last Top 25: Kansas (17), NC State (22), Oregon (24)
 
 ## Track Record
 
+Overall predictive accuracy: 63.89% (69/108) of games predicted correctly.
+
+Overall performance compared to Caesar's Sportsbook: 33.33% (6/18) of games with different predictions were correct.
+
+* 2022, Week 7: Correctly predicted 58.82% (30/51) of games. In games with different favorite than Caesar's Sportsbook (as reported by ESPN), 28.57% (2/7) were chosen correctly.
+
 * 2022, Week 6: Correctly predicted 68.42% (39/57) of games. In games with different favorite than Caesar's Sportsbook (as reported by ESPN), 36.36% (4/11) were chosen correctly.
+
+## Ranking Methodology Change Log
+
+2022, Week 8 Rankings:
+
+* Remove 3x multiplier for FCS losses, replace with 21 point adjusted scoring margin penalty vs. FCS teams
+* Consider all FCS games, not just losses
+* Apply recency bias 0.05
+* Apply adjusted scoring margin cap at 38
+
+Base:
+
+* Ignore FCS wins
+* Apply a 3x multiplier to adjusted score margin in losses vs. FCS teams
+* Away team receives 2 points in adjusted score
+* Winning team receives 5 points in adjusted score
+* Win factor: 10, loss factor: 10 in calculating game metric
+* Opponent strength weight in calculating game metric: 0.5
