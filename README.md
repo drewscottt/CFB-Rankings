@@ -75,13 +75,13 @@ There are two main programs:
 
 ## Track Record
 
-Overall predictive accuracy: 63.89% (69/108) of games predicted correctly. (Note: only FBS vs. FBS considered)
+Overall predictive accuracy: 63.89% (69/108) of games predicted correctly. (Note: only FBS vs. FBS games considered)
 
 Overall performance compared to Caesar's Sportsbook: 33.33% (6/18) of games with different predictions were correct. (Note: spread must be available on ESPN game page to be considered)
 
-Profit from $100 ML wagers: -$2,725.57 (out of $4,400)
+Profit from $100 ML wagers: -$925.57 ($4,400 wagered)
 
-* 2022, Week 7: Correctly predicted 58.82% (30/51) of games. In games with different favorite than Caesar's Sportsbook (as reported by ESPN), 28.57% (2/7) were chosen correctly. Betting $100 on each predicted winner's ML resulted in $2,725.57 loss out of $4,400 wagered.
+* 2022, Week 7: Correctly predicted 58.82% (30/51) of games. In games with different favorite than Caesar's Sportsbook (as reported by ESPN), 28.57% (2/7) were chosen correctly. Betting $100 on each predicted winner's ML resulted in $925.57 loss out of $4,400 wagered.
 
 * 2022, Week 6: Correctly predicted 68.42% (39/57) of games. In games with different favorite than Caesar's Sportsbook (as reported by ESPN), 36.36% (4/11) were chosen correctly.
 

@@ -177,7 +177,8 @@ def analyze_predictions(ranking: Dict[str, str], espn_schedule_url: str):
     upsets: List[Tuple[int, str]] = []
     games_diff_sportsbook: List[str] = []
     num_beat_ml: int = 0
-    total_revenue: float = 0
+    profit: float = 0
+    revenue: float = 0
     games_with_ml: int = 0
     games_predicted: int = 0
     for game in games:
@@ -202,15 +203,17 @@ def analyze_predictions(ranking: Dict[str, str], espn_schedule_url: str):
             if winner_ml != 0:
                 games_with_ml += 1
                 if winner_ml < 0:
-                    total_revenue += 100 + 100*(100/abs(winner_ml))
+                    profit += 100*(100/abs(winner_ml))
+                    revenue += 100*(100/abs(winner_ml)) + 100
                 else:
-                    total_revenue += winner_ml + 100
+                    profit += winner_ml
+                    revenue += winner_ml + 100
         else:
             rank_diff: int = abs(winning_rank - losing_rank)
             upsets.append((rank_diff, f"{winning_team.get_name()} ({winning_rank}) def. {losing_team.get_name()} ({losing_rank}): {rank_diff} difference"))
             if winner_ml != 0:
                 games_with_ml += 1
-                total_revenue -= 100
+                profit -= 100
 
         sportsbook_favorite: Optional[Team] = game.get_sportsbook_favorite()
         if sportsbook_favorite is not None and rankings_favorite != sportsbook_favorite:
@@ -226,7 +229,7 @@ def analyze_predictions(ranking: Dict[str, str], espn_schedule_url: str):
         print("\t", upsets[i][1])
 
     amount_wagered = 100*games_with_ml
-    print(f"If you bet $100 on each game (${amount_wagered:,} total) with an ML available ({games_with_ml}) on the ML of the ranking's projected winner, you ended up with ${total_revenue:,.2f}, or ${total_revenue - amount_wagered:,.2f} profit")
+    print(f"If you bet $100 on each game (${amount_wagered:,} total) with an ML available ({games_with_ml}) on the ML of the ranking's projected winner, you ended up with ${revenue:,.2f}, or ${profit:,.2f} profit")
     
     print(f"In games with different projection than sportsbook, {num_beat_ml/len(games_diff_sportsbook) if len(games_diff_sportsbook) > 0 else 0:.2%} ({num_beat_ml}/{len(games_diff_sportsbook)}) games were selected correctly.")
     for diff in games_diff_sportsbook:
