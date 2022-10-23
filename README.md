@@ -46,44 +46,41 @@ There are two main programs:
 ## Current Top 25
 
 1. Ohio State (+0)
-2. Georgia (+1)
-3. Michigan (+2)
+2. Georgia (+0)
+3. Michigan (+0)
 4. Tennessee (+0)
-5. Clemson (+1)
-6. TCU (+4)
-7. Alabama (-5)
-8. Texas (+3)
-9. Ole Miss (-1)
-10. UCLA (+2)
-11. Syracuse (+4)
-12. USC (-3)
-13. Utah (+11)
-14. UCF (+8)
-15. Wake Forest (+1)
-16. Oklahoma State (+4)
-17. James Madison (-10)
-18. Illinois (+1)
-19. Penn State (-6)
-20. Tulane (NEW)
-21. Mississippi State (-7)
-22. Purdue (-1)
-23. Minnesota (-6)
-24. Cincinnati (NEW)
-25. Kansas State (NEW)
+5. Alabama (+2)
+6. Clemson (-1)
+7. TCU (-1)
+8. USC (+4)
+9. Penn State (+10)
+10. Wake Forest (+5)
+11. Oklahoma State (+5)
+12. Texas (-4)
+13. Utah (+0)
+14. Syracuse (-3)
+15. Illinois (+3)
+16. Tulane (+4)
+17. Ole Miss (-8)
+18. UCLA (-8)
+19. Cincinnati (+5)
+20. LSU (NEW)
+21. NC State (NEW)
+22. Oregon (NEW)
+23. UCF (-9)
+24. North Carolina (NEW)
+25. Kansas State (+0)
 
-    Dropped from last Top 25: Kansas (17), NC State (22), Oregon (24)
+    Dropped from last Top 25: James Madison (16), Mississippi State (20), Purdue (21), Minnesota (22)
 
 ## Track Record
 
-Overall predictive accuracy: 63.89% (69/108) of games predicted correctly. (Note: only FBS vs. FBS games considered)
-
-Overall performance compared to Caesar's Sportsbook: 33.33% (6/18) of games with different predictions were correct. (Note: spread must be available on ESPN game page to be considered)
-
-Profit from $100 ML wagers: -$925.57 ($4,400 wagered)
-
-* 2022, Week 7: Correctly predicted 58.82% (30/51) of games. In games with different favorite than Caesar's Sportsbook (as reported by ESPN), 28.57% (2/7) were chosen correctly. Betting $100 on each predicted winner's ML resulted in $925.57 loss out of $4,400 wagered.
-
-* 2022, Week 6: Correctly predicted 68.42% (39/57) of games. In games with different favorite than Caesar's Sportsbook (as reported by ESPN), 36.36% (4/11) were chosen correctly.
+| Season, Week | Games Registered | Games Correct | Percent Correct | Games Differ Sportsbook | Games Differ Sportsbook Correct | Percent Differ Sportsbook Correct | Amount on ML | Profit From ML |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2022, Week 8 | 52 | 32 | 61.54% | 14 | 6 | 42.86% | $5,200 | $139.75 |
+| 2022, Week 7 | 51 | 30 | 58.82% | 7 | 2 | 28.57% | $4,400 | -$925.57 |
+| 2022, Week 6 | 57 | 39 | 68.42% | 11 | 4 | 36.36% | N/A | N/A |
+| Totals | 160 | 101 | 63.13% | 32 | 12 | 37.50% | $9,600 | -$785.82 |
 
 ## Ranking Methodology Change Log
 

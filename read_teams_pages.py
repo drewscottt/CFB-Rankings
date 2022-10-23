@@ -71,6 +71,8 @@ def process_games(team_links_filename: str, team_pages_dir: str, fbs_seen: Set[T
             game_num: int = 0
             for result_span in result_spans:
                 game, opp_team = process_game(result_span, team, trunc_to_full, teams_seen)
+                if game is None:
+                    continue
 
                 added: bool = team.add_game(game, game_num)
                 if added:
@@ -107,6 +109,9 @@ def process_game(result_span, team: Team, trunc_to_full: Dict[str, str], teams_s
     # determine game result in terms of home/away
     game_result: str = game_div.find("span", {"class": "Schedule__Result"}).text
     game_score: str = game_div.find("span", {"class": "Schedule__Score"}).text
+    if game_result == "PPD" or game_score == "PPD":
+        return None, None
+
     winner_score: int = int(game_score.split("-")[0])
     loser_score: int = int(game_score.split("-")[1])
     home_score: int = 0

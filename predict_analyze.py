@@ -47,8 +47,13 @@ def process_game_result(result_url: str, game_data: dict, abbrevs: Dict[str, str
     # parse the results page, getting the sportsbook prediction
     try:
         odds = result_soup.find("div", {"class": "odds-lines-plus-logo"}).find("ul").find("li").text
-        sportsbook_favorite = abbrevs[odds.split(" ")[1]]
-        spread = float(odds.split(" ")[2])
+        line_info = odds.split(" ")
+        if len(line_info) == 2:
+            sportsbook_favorite = ""
+            spread = 0
+        else:
+            sportsbook_favorite = abbrevs[line_info[1]]
+            spread = float(line_info[2])
 
         game_data["sportsbook_favorite"] = sportsbook_favorite
         game_data["spread"] = spread
@@ -112,8 +117,11 @@ def get_games_to_play(get_results: bool, schedule_url: str, abbrevs: Dict[str, s
                 games_to_play.append(Game(Team(home_team_name), Team(away_team_name), False, 0, 0))
             else:
                 try:
-                    result_url = "https://espn.com" + game.find("td", {"class", "teams__col Table__TD"}).find("a")["href"]
-                    
+                    result_link = game.find("td", {"class", "teams__col Table__TD"})
+                    if result_link.text == "Postponed":
+                        continue
+
+                    result_url = "https://espn.com" + result_link.find("a")["href"]
                     game_data = {}
                     game_data["home_team_name"] = home_team_name
                     game_data["away_team_name"] = away_team_name
@@ -188,11 +196,14 @@ def analyze_predictions(ranking: Dict[str, str], espn_schedule_url: str):
         if winning_team.get_name() not in ranking or losing_team.get_name() not in ranking:
             continue
 
-        games_predicted += 1
-
         winner_ml: int = game.get_winner_ml()
         winning_rank: int = ranking[winning_team.get_name()]
         losing_rank: int = ranking[losing_team.get_name()]
+
+        # if abs(winning_rank - losing_rank) <= 25: # (winning_rank > 70 and losing_rank > 70) or
+        #     continue
+
+        games_predicted += 1
 
         rankings_favorite: Team = winning_team
         if losing_rank < winning_rank:
