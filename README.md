@@ -54,24 +54,24 @@ There are two main programs:
 7. TCU (-1)
 8. USC (+4)
 9. Penn State (+10)
-10. Wake Forest (+5)
-11. Oklahoma State (+5)
-12. Texas (-4)
+10. Oregon (NEW)
+11. Wake Forest (+4)
+12. Oklahoma State (+4)
 13. Utah (+0)
 14. Syracuse (-3)
 15. Illinois (+3)
-16. Tulane (+4)
-17. Ole Miss (-8)
-18. UCLA (-8)
-19. Cincinnati (+5)
-20. LSU (NEW)
+16. LSU (NEW)
+17. UCLA (-7)
+18. Tulane (+2)
+19. Ole Miss (-10)
+20. Texas (-12)
 21. NC State (NEW)
-22. Oregon (NEW)
-23. UCF (-9)
-24. North Carolina (NEW)
-25. Kansas State (+0)
+22. Cincinnati (+2)
+23. Kansas State (+2)
+24. UCF (-10)
+25. North Carolina (NEW)
 
-    Dropped from last Top 25: James Madison (16), Mississippi State (20), Purdue (21), Minnesota (22)
+    Dropped from last Top 25: James Madison (16), Mississippi State (20), Purdue (21), Minnesota (22
 
 ## Track Record
 
@@ -81,6 +81,10 @@ There are two main programs:
 | 2022, Week 7 | 51 | 30 | 58.82% | 7 | 2 | 28.57% | $4,400 | -$925.57 |
 | 2022, Week 6 | 57 | 39 | 68.42% | 11 | 4 | 36.36% | N/A | N/A |
 | Totals | 160 | 101 | 63.13% | 32 | 12 | 37.50% | $9,600 | -$785.82 |
+
+Notes:
+* Games Registered includes only FBS vs. FBS matchups for the week.
+* Sometimes ESPN doesn't include sportsbook data ([example](https://www.espn.com/college-football/game?gameId=401415240)) or sportsbook doesn't have a favorite ([example](https://www.espn.com/college-football/game?gameId=401403923)).
 
 ## Ranking Methodology Change Log
 

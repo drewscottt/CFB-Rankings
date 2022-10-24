@@ -183,20 +183,28 @@ class Game:
 
         return min(margin, Game.adj_margin_max)
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"{self.away_team.get_name()} ({self.away_score}) @ {self.home_team.get_name()} ({self.home_score})"
 
     def __eq__(self, other) -> bool:
         '''
             Two games are equal if they have the same away teams, home teams, away scores and home scores
             TODO: It is feasible for 2 teams to play twice to the same result, so a date should be included
+            TODO: need to correctly identify neutral site games to do this effectively
         '''
 
         if isinstance(other, Game):
-            same = self.away_team == other.away_team
-            same = same and self.home_team == other.home_team
-            same = same and self.away_score == other.away_score
-            same = same and self.home_score == other.home_score
+            # due to inability to identify neutral site games, check for an exact match or an opposite match
+            same = False
+            if self.away_team == other.away_team:
+                same = self.home_team == other.home_team
+                same = same and self.away_score == other.away_score
+                same = same and self.home_score == other.home_score
+            elif self.away_team == other.home_team:
+                same = self.home_team == other.away_team
+                same = same and self.away_score == other.home_score
+                same = same and self.home_score == other.away_score
+
             return same
         else:
             return False

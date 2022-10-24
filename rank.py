@@ -115,7 +115,7 @@ def main(teams_directory):
     for i, team in enumerate(rank1):
         print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0.05,exclude_team_result_from_opp=True)})")
 
-    # for i, team in enumerate(filter_ranking(rank1, "Big Ten")):
+    # for i, team in enumerate(filter_ranking(rank1, "ACC")):
     #     print(f"{i+1}. ({team[1]+1}) {team[0].get_name()} ({team[0].get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0,exclude_team_result_from_opp=True)})")
 
     # rank2 = sorted(list(fbs_seen), key=lambda Team: Team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,exclude_team_result_from_opp=True), reverse=True)

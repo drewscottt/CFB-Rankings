@@ -120,7 +120,8 @@ class Team:
                 game_mov = game.get_adj_victory_margin() 
                 result_factor = win_factor * opp_win_avg
 
-            game_metrics.append(game_mov + opp_strength_weight * opp_avg_mov + result_factor)
+            game_metric = game_mov + (opp_strength_weight * opp_avg_mov) + result_factor
+            game_metrics.append(game_metric)
 
         # weigh each game metric according to the recency bias
         base_weight: float = 1 / len(game_metrics)
