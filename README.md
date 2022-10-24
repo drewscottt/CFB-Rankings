@@ -71,7 +71,7 @@ There are two main programs:
 24. UCF (-10)
 25. North Carolina (NEW)
 
-    Dropped from last Top 25: James Madison (16), Mississippi State (20), Purdue (21), Minnesota (22
+    Dropped from last Top 25: James Madison (16), Mississippi State (20), Purdue (21), Minnesota (22)
 
 ## Track Record
 
@@ -87,6 +87,10 @@ Notes:
 * Sometimes ESPN doesn't include sportsbook data ([example](https://www.espn.com/college-football/game?gameId=401415240)) or sportsbook doesn't have a favorite ([example](https://www.espn.com/college-football/game?gameId=401403923)).
 
 ## Ranking Methodology Change Log
+
+2022, Week 9 Rankings:
+
+* Major bug fix: neutral site games no longer double counted.
 
 2022, Week 8 Rankings:
 
