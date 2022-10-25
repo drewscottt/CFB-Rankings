@@ -66,12 +66,19 @@ class Team:
             self.games.append(game)
 
             self.avg_victory_margin = self.point_differential / len(self.games)
-        
+        else:
+            # the way that we process games from ESPN pages results in two versions of a neutral game: the home/away teams are swapped
+            # so if we identify a match (based on the ESPN game id), but find the home/away teams are flipped, then the game is neutral
+            existing_game = self.games[self.games.index(game)]
+            if existing_game.get_home_team() != game.get_home_team():
+                existing_game.set_neutral(True)
+
         # the game might've been added previously if we processed the opponent first, but we want to maintain chronological ordering
         if correct_position != -1:
             cur_position = self.games.index(game)
+            existing_game = self.games[cur_position]
             self.games[cur_position] = self.games[correct_position]
-            self.games[correct_position] = game
+            self.games[correct_position] = existing_game
 
         return True
 

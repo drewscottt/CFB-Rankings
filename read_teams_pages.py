@@ -81,6 +81,8 @@ def process_games(team_links_filename: str, team_pages_dir: str, fbs_seen: Set[T
 
 def process_game(result_span, team: Team, trunc_to_full: Dict[str, str], teams_seen: Dict[str, Team]) -> Tuple[Game, Team]:
     game_div = result_span.find_parent("div").find_parent("div")
+    
+    espn_game_id = game_div.find_parent("a")["href"].split("/")[-1]
 
     # get the opponent for the game
     game_opp_trunc: str = game_div.find("span", {"class": "Schedule__Team"}).text
@@ -132,7 +134,7 @@ def process_game(result_span, team: Team, trunc_to_full: Dict[str, str], teams_s
             away_score = winner_score
 
     # create the game
-    game: Game = Game(home_team, away_team, False, home_score, away_score)
+    game: Game = Game(home_team, away_team, home_score, away_score, espn_game_id)
 
     return game, opp_team
 

@@ -25,24 +25,16 @@ class Game:
     adj_margin_max: float = float('inf')
     non_fbs_bonus: float = 0
 
-    def __init__(self, home_team: cfb_module.Team, away_team: cfb_module.Team, neutral_game: bool, home_score: int, away_score: int):
+    def __init__(self, home_team: cfb_module.Team, away_team: cfb_module.Team, home_score: int = 0, away_score: int = 0, espn_game_id: str = ""):
         self.home_team: cfb_module.Team = home_team
         self.away_team: cfb_module.Team = away_team
-        self.neutral_game: bool = neutral_game
+        
         self.home_score: int = home_score
         self.away_score: int = away_score
 
-        self.adj_home_score: float = self.home_score - Game.home_advantage
-        self.adj_away_score: float = self.away_score + Game.away_disadvantage
-        if self.home_score > self.away_score:
-            self.adj_home_score += Game.winner_bonus
-        else:
-            self.adj_away_score += Game.winner_bonus
+        self.espn_game_id = espn_game_id
 
-        if not self.home_team.is_fbs:
-            self.adj_home_score += Game.non_fbs_bonus
-        if not self.away_team.is_fbs:
-            self.adj_away_score += Game.non_fbs_bonus
+        self.neutral_game: bool = False
 
         self.sportsbook_favorite: Optional[cfb_module.Team] = None
         self.spread: float = 0
@@ -87,7 +79,7 @@ class Game:
             Returns the team with the lower adjusted score
         '''
         
-        if self.adj_home_score > self.adj_away_score:
+        if self.get_adj_home_score() > self.get_adj_away_score():
             return self.away_team
         else:
             return self.home_team
@@ -97,7 +89,7 @@ class Game:
             Returns the team with the lower adjusted score
         '''
         
-        if self.adj_home_score < self.adj_away_score:
+        if self.get_adj_home_score() < self.get_adj_away_score():
             return self.away_team
         else:
             return self.home_team
@@ -115,6 +107,13 @@ class Game:
         '''
 
         return self.away_team
+
+    def set_neutral(self, is_neutral: bool):
+        '''
+            Sets the game's neutral state
+        '''
+        
+        self.neutral_game = is_neutral
 
     def set_odds(self, favorite_name: str, spread: float):
         '''
@@ -177,34 +176,60 @@ class Game:
             Returns the absolute difference between the two adjusted scores of this game
         '''
 
-        margin: float = abs(self.adj_home_score - self.adj_away_score)
+        margin: float = abs(self.get_adj_home_score() - self.get_adj_away_score())
         if not self.get_winner().is_fbs:
             margin *= Game.non_fbs_loss_multiplier
 
         return min(margin, Game.adj_margin_max)
 
+    def get_adj_home_score(self) -> float:
+        '''
+            Returns the adjusted score for the home team
+        '''
+        
+        adj_score = self.home_score
+    
+        if not self.neutral_game:
+            adj_score -= Game.home_advantage
+
+        if self.get_winner() == self.home_team:
+            adj_score += Game.winner_bonus
+
+        if not self.home_team.is_fbs:
+            adj_score += Game.non_fbs_bonus
+
+        return adj_score
+
+    def get_adj_away_score(self) -> float:
+        '''
+            Returns the adjusted score for the away team
+        '''
+        
+        adj_score = self.away_score
+    
+        if not self.neutral_game:
+            adj_score += Game.away_disadvantage
+
+        if self.get_winner() == self.away_team:
+            adj_score += Game.winner_bonus
+
+        if not self.away_team.is_fbs:
+            adj_score += Game.non_fbs_bonus
+
+        return adj_score
+
     def __repr__(self) -> str:
-        return f"{self.away_team.get_name()} ({self.away_score}) @ {self.home_team.get_name()} ({self.home_score})"
+        if self.neutral_game:
+            return f"{self.away_team.get_name()} {self.away_score} vs. {self.home_team.get_name()} {self.home_score}"
+        else:
+            return f"{self.away_team.get_name()} {self.away_score} @ {self.home_team.get_name()} {self.home_score}"
 
     def __eq__(self, other) -> bool:
         '''
-            Two games are equal if they have the same away teams, home teams, away scores and home scores
-            TODO: It is feasible for 2 teams to play twice to the same result, so a date should be included
-            TODO: need to correctly identify neutral site games to do this effectively
+            Two games are equal if they have the same ESPN game id
         '''
 
         if isinstance(other, Game):
-            # due to inability to identify neutral site games, check for an exact match or an opposite match
-            same = False
-            if self.away_team == other.away_team:
-                same = self.home_team == other.home_team
-                same = same and self.away_score == other.away_score
-                same = same and self.home_score == other.home_score
-            elif self.away_team == other.home_team:
-                same = self.home_team == other.away_team
-                same = same and self.away_score == other.home_score
-                same = same and self.home_score == other.away_score
-
-            return same
+            return self.espn_game_id == other.espn_game_id
         else:
             return False

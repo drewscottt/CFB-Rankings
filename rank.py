@@ -122,7 +122,7 @@ def main(teams_directory):
     # for i, team in enumerate(rank2):
     #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
 
-    compare_rankings(read_ranking("rankings/2022-week8.txt"), rank1)
+    compare_rankings(read_ranking("rankings/2022-week9.txt"), rank1)
 
 if __name__ == "__main__":
     main(sys.argv[1])

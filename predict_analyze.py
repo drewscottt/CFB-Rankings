@@ -114,7 +114,7 @@ def get_games_to_play(get_results: bool, schedule_url: str, abbrevs: Dict[str, s
 
             if not get_results:
                 # we don't need to extract the game's results, so we have all we need
-                games_to_play.append(Game(Team(home_team_name), Team(away_team_name), False, 0, 0))
+                games_to_play.append(Game(Team(home_team_name), Team(away_team_name)))
             else:
                 try:
                     result_link = game.find("td", {"class", "teams__col Table__TD"})
@@ -128,7 +128,7 @@ def get_games_to_play(get_results: bool, schedule_url: str, abbrevs: Dict[str, s
                     process_game_preview(result_url, game_data)
                     process_game_result(result_url, game_data, abbrevs)
 
-                    game = Game(Team(home_team_name), Team(away_team_name), False, game_data["home_score"], game_data["away_score"])
+                    game = Game(Team(home_team_name), Team(away_team_name), False, game_data["home_score"], game_data["away_score"], result_url.split("/")[-1])
                     if "sportsbook_favorite" in game_data and "spread" in game_data:
                         game.set_odds(game_data["sportsbook_favorite"], game_data["spread"])
                     
