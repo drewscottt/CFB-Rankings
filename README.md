@@ -31,9 +31,13 @@ There are two main programs:
 
 * rank.py: Used to compute a ranking, or compare rankings.
 
-    ```python3 rank.py <team_directory>```
+    ```python3 rank.py <team_results_directory>```
 
     ```python3 rank.py team_pages/2022-week6-results/```
+
+    This has a function to compare a ranking to another ranking (change in Top 25, biggest movers) and another function to filter a ranking based on conference.
+
+    Note: before running for a new week of results, first craate the results directory under ```team_pages```, then it will populate the directory.
 
 * predict_analyze.py: Used to predict a schedule of games based on a previously generated ranking, or analyze a schedule of results and sportsbook predictions in relation to a ranking.
 
@@ -41,7 +45,9 @@ There are two main programs:
 
     ```python3 predict_analyze.py rankings/2022-week6.txt predict```
 
-    ```python3 predict_analyze.py rankings/2022-week6.txt analyze```
+    ```python3 predict_analyze.py rankings/2022-week6.txt analyze https://www.espn.com/college-football/schedule/_/week/9/year/2022/seasontype/2```
+
+    Note: To capture the pre-game view of game pages, just run with the analyze option on the appropriate schedule before the games have started.
 
 ## Current Top 25
 
@@ -75,17 +81,18 @@ There are two main programs:
 
 ## Track Record
 
-| Season, Week | Games Registered | Games Correct | Percent Correct | Games Differ Sportsbook | Games Differ Sportsbook Correct | Percent Differ Sportsbook Correct | Amount on ML | Profit From ML |
+| Season, Week | Games Registered | Games Correct | Percent Correct | Games Differ Sportsbook | Games Differ Sportsbook Correct | Percent Differ Sportsbook Correct | Amount on ML | Profit From ML | Percent Profit ML |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2022, Week 9 | 47 | 36 | 76.60% | 9 | 5 | 55.56% | $4,600 | $513.16 |
-| 2022, Week 8 | 52 | 32 | 61.54% | 14 | 6 | 42.86% | $5,200 | $139.75 |
-| 2022, Week 7 | 51 | 30 | 58.82% | 7 | 2 | 28.57% | $4,400 | -$925.57 |
-| 2022, Week 6 | 57 | 39 | 68.42% | 11 | 4 | 36.36% | N/A | N/A |
-| Totals | 207 | 137 | 66.18% | 41 | 17 | 41.46% | $14,200 | -$272.66 |
+| 2022, Week 9 | 47 | 36 | 76.60% | 9 | 5 | 55.56% | $4,600 | $513.16 | 11.16% |
+| 2022, Week 8 | 52 | 32 | 61.54% | 14 | 6 | 42.86% | $5,200 | $139.75 | 2.69% |
+| 2022, Week 7 | 51 | 30 | 58.82% | 7 | 2 | 28.57% | $4,400 | -$925.57 | -21.04% |
+| 2022, Week 6 | 57 | 39 | 68.42% | 11 | 4 | 36.36% | N/A | N/A | N/A |
+| Totals | 207 | 137 | 66.18% | 41 | 17 | 41.46% | $14,200 | -$272.66 | -1.92% |
 
 Notes:
 * Games Registered includes only FBS vs. FBS matchups for the week.
-* Sometimes ESPN doesn't include sportsbook data ([example](https://www.espn.com/college-football/game?gameId=401415240)) or sportsbook doesn't have a favorite ([example](https://www.espn.com/college-football/game?gameId=401403923)).
+* Sometimes ESPN doesn't include sportsbook data ~~([example](https://www.espn.com/college-football/game?gameId=401415240))~~ or sportsbook doesn't have a favorite ([example](https://www.espn.com/college-football/game?gameId=401403923)).
+* 2022, Week 7 was first week collecting ML data and is incomplete due to data collection after some games had been played.
 
 ## Ranking Methodology Change Log
 
