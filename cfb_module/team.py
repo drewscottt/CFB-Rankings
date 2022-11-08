@@ -31,7 +31,6 @@ class Team:
         self.conference: str = conference
         self.games: List[cfb_module.Game] = []
         self.point_differential: float = 0
-        self.avg_victory_margin: float = 0
         self.is_fbs: bool = False
         self.num_losses: int = 0
         self.num_wins: int = 0
@@ -64,8 +63,6 @@ class Team:
                 self.point_differential += game.get_adj_victory_margin()
 
             self.games.append(game)
-
-            self.avg_victory_margin = self.point_differential / len(self.games)
         else:
             # the way that we process games from ESPN pages results in two versions of a neutral game: the home/away teams are swapped
             # so if we identify a match (based on the ESPN game id), but find the home/away teams are flipped, then the game is neutral
@@ -155,9 +152,6 @@ class Team:
             Returns the average adjusted point differential for each of the team's games in their game list
             Exlcudes games played against exclude_team
         '''
-
-        if exclude_team is None:
-            return self.avg_victory_margin
         
         diff: float = 0
         counted_games: int = 0

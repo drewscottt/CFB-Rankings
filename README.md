@@ -53,41 +53,42 @@ There are two main programs:
 
 1. Ohio State (+0)
 2. Georgia (+0)
-3. Tennessee (+1)
-4. Michigan (-1)
+3. Michigan (+1)
+4. Tennessee (-1)
 5. Alabama (+0)
-6. TCU (+1)
-7. Clemson (-1)
-8. Oregon (+2)
-9. USC (-1)
-10. Utah (+3)
-11. Illinois (+4)
-12. UCLA (+5)
-13. Kansas State (+10)
-14. Tulane (+4)
-15. LSU (+1)
-16. Penn State (-7)
-17. Ole Miss (+2)
-18. North Carolina (+7)
-19. Texas (+1)
-20. UCF (+4)
-21. Wake Forest (-10)
-22. Baylor (NEW)
-23. Syracuse (-9)
-24. Louisville (NEW)
-25. Notre Dame (NEW)
+6. TCU (+0)
+7. Oregon (+1)
+8. Utah (+2)
+9. Penn State (+7)
+10. UCLA (+2)
+11. USC (-2)
+12. LSU (+3)
+13. Clemson (-6)
+14. Tulane (+0)
+15. UCF (+5)
+16. Texas (+3)
+17. Louisville (+7)
+18. Notre Dame (+7)
+19. Ole Miss (-2)
+20. Florida State (NEW)
+21. North Carolina (-3)
+22. South Alabama (NEW)
+23. Baylor (-1)
+24. Illinois (-13)
+25. Kansas State (-12)
 
-    Dropped from last Top 25: Oklahoma State (11), NC State (20), Cincinnati (21)
+    Dropped from last Top 25: Wake Forest (20), Syracuse (22)
 
 ## Track Record
 
 | Season, Week | Games Registered | Games Correct | Percent Correct | Games Differ Sportsbook | Games Differ Sportsbook Correct | Percent Differ Sportsbook Correct | Amount on ML | Profit From ML | Percent Profit ML |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2022, Week 10 | 60 | 39 | 65.00% | 11 | 4 | 36.36% | $5,800 | -$350.67 | -6.04% |
 | 2022, Week 9 | 47 | 36 | 76.60% | 9 | 5 | 55.56% | $4,600 | $513.16 | 11.16% |
 | 2022, Week 8 | 52 | 32 | 61.54% | 14 | 6 | 42.86% | $5,200 | $139.75 | 2.69% |
 | 2022, Week 7 | 51 | 30 | 58.82% | 7 | 2 | 28.57% | $4,400 | -$925.57 | -21.04% |
 | 2022, Week 6 | 57 | 39 | 68.42% | 11 | 4 | 36.36% | N/A | N/A | N/A |
-| Totals | 207 | 137 | 66.18% | 41 | 17 | 41.46% | $14,200 | -$272.66 | -1.92% |
+| Totals | 267 | 176 | 65.92% | 52 | 21 | 40.38% | $20,000 | -$623.33 | -3.12% |
 
 Notes:
 * Games Registered includes only FBS vs. FBS matchups for the week.
