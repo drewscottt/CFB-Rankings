@@ -13,8 +13,8 @@ def main():
     name_to_abbrev: Dict[str, str] = {}
     with open("team_links.csv", "r") as f:
         for line in f:
-            team_name = line.split("/")[-1].strip()
-            with open(f"teams/2022-week7/{team_name}", "r") as team_file:
+            team_name = line.split("/")[-1].split(",")[0]
+            with open(f"team_pages/2022-week10-results/{team_name}.html", "r") as team_file:
                 team_html = team_file.read().strip()
                 team_soup = BeautifulSoup(team_html, "html.parser")
 

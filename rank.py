@@ -104,16 +104,16 @@ def read_ranking(filename: str) -> List[Team]:
 def main(teams_directory):
     Game.away_disadvantage = 2
     Game.winner_bonus = 5
-    Game.adj_margin_max = 38
-    Game.non_fbs_bonus = 21
-    Team.ignore_all_non_fbs = False
-    Team.ignore_wins_vs_non_fbs = False
+    Game.adj_margin_max = 28
+    Game.non_fbs_bonus = 0
+    Game.fcs_game_factor = 0.25
+    Team.ignore_all_non_d1 = True
 
     fbs_seen: Set[Team] = read_teams_pages.main(teams_directory)
 
-    rank1 = sorted(list(fbs_seen), key=lambda Team: Team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0.05,exclude_team_result_from_opp=True), reverse=True)
-    # for i, team in enumerate(rank1):
-    #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0.05,exclude_team_result_from_opp=True)})")
+    rank1 = sorted(list(fbs_seen), key=lambda Team: Team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,win_factor=10,loss_factor=10,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_result_from_opp=True), reverse=True)
+    for i, team in enumerate(rank1):
+        print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,win_factor=10,loss_factor=10,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_result_from_opp=True)})")
 
     # for i, team in enumerate(filter_ranking(rank1, "Pac-12")):
     #     print(f"{i+1}. ({team[1]+1}) {team[0].get_name()} ({team[0].get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0,exclude_team_result_from_opp=True)})")
@@ -122,7 +122,7 @@ def main(teams_directory):
     # for i, team in enumerate(rank2):
     #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
 
-    compare_rankings(read_ranking("rankings/2022-week10.txt"), rank1)
+    compare_rankings(read_ranking("rankings/2022-week11.txt"), rank1)
 
 if __name__ == "__main__":
     main(sys.argv[1])

@@ -109,8 +109,13 @@ def get_games_to_play(get_results: bool, schedule_url: str, abbrevs: Dict[str, s
         games = game_day.find_all("tr", {"class": "Table__TR Table__TR--sm Table__even"})
         for game in games:
             teams = game.find_all("span", {"class": "Table__Team"})
-            away_team_name: str = teams[0].find_all("a")[1].text
-            home_team_name: str = teams[1].find_all("a")[1].text
+
+            try:
+                away_team_name: str = teams[0].find_all("a")[1].text
+                home_team_name: str = teams[1].find_all("a")[1].text
+            except IndexError:
+                # a team doesn't have ESPN team page linked, so we just ignore this game
+                continue
 
             if not get_results:
                 # we don't need to extract the game's results, so we have all we need

@@ -24,6 +24,7 @@ class Game:
     non_fbs_loss_multiplier: float = 1
     adj_margin_max: float = float('inf')
     non_fbs_bonus: float = 0
+    fcs_game_factor: float = 1
 
     def __init__(self, home_team: cfb_module.Team, away_team: cfb_module.Team, home_score: int = 0, away_score: int = 0, espn_game_id: str = ""):
         self.home_team: cfb_module.Team = home_team
@@ -32,7 +33,7 @@ class Game:
         self.home_score: int = home_score
         self.away_score: int = away_score
 
-        self.espn_game_id = espn_game_id
+        self.espn_game_id: str = espn_game_id
 
         self.neutral_game: bool = False
 
@@ -171,16 +172,29 @@ class Game:
         else:
             return self.away_ml
 
-    def get_adj_victory_margin(self) -> float:
+    def get_adj_score_margin(self, query_team: cfb_module.Team) -> float:
         '''
-            Returns the absolute difference between the two adjusted scores of this game
+            Returns the query_team's scoring margin in this game
         '''
 
         margin: float = abs(self.get_adj_home_score() - self.get_adj_away_score())
-        if not self.get_winner().is_fbs:
+        if query_team == self.get_adj_loser():
+            margin *= -1
+
+        if not self.get_winner().is_fbs and self.get_loser().is_fbs:
             margin *= Game.non_fbs_loss_multiplier
 
-        return min(margin, Game.adj_margin_max)
+        if not self.home_team.is_fbs and not self.away_team.is_fbs:
+        # if not self.get_opponent(query_team).is_fbs:
+            if margin >= 0:
+                margin *= Game.fcs_game_factor
+            else:
+                margin *= 1/Game.fcs_game_factor
+
+        if margin >= 0:
+            return min(margin, Game.adj_margin_max)
+        else:
+            return max(margin, -Game.adj_margin_max)
 
     def get_adj_home_score(self) -> float:
         '''
@@ -195,7 +209,7 @@ class Game:
         if self.get_winner() == self.home_team:
             adj_score += Game.winner_bonus
 
-        if not self.home_team.is_fbs:
+        if not self.home_team.is_fbs and self.away_team.is_fbs:
             adj_score += Game.non_fbs_bonus
 
         return adj_score
@@ -213,7 +227,7 @@ class Game:
         if self.get_winner() == self.away_team:
             adj_score += Game.winner_bonus
 
-        if not self.away_team.is_fbs:
+        if not self.away_team.is_fbs and self.home_team.is_fbs:
             adj_score += Game.non_fbs_bonus
 
         return adj_score

@@ -23,8 +23,9 @@ from typing import List, Optional
 
 class Team:
     # use to tweak settings on processing FCS games
-    ignore_all_non_fbs: bool = True
-    ignore_wins_vs_non_fbs: bool = True
+    ignore_all_non_fbs: bool = False
+    ignore_wins_vs_non_fbs: bool = False
+    ignore_all_non_d1: bool = False
 
     def __init__(self, team_name: str, conference: str = ""):
         self.team_name: str = team_name
@@ -32,6 +33,7 @@ class Team:
         self.games: List[cfb_module.Game] = []
         self.point_differential: float = 0
         self.is_fbs: bool = False
+        self.is_d1: bool = False
         self.num_losses: int = 0
         self.num_wins: int = 0
     
@@ -51,16 +53,17 @@ class Team:
             if Team.ignore_all_non_fbs and not opp_team.is_fbs:
                 return False
 
+            if Team.ignore_all_non_d1 and not opp_team.is_d1:
+                return False
+
             if game.get_loser() == self:
                 self.num_losses += 1
-                self.point_differential -= game.get_adj_victory_margin()
             else:
                 # do not add the game if it is a win against a non-fbs opponent and the ignore_wins_vs_non_fbs flag is set
                 if Team.ignore_wins_vs_non_fbs and not opp_team.is_fbs:
                     return False
 
                 self.num_wins += 1
-                self.point_differential += game.get_adj_victory_margin()
 
             self.games.append(game)
         else:
@@ -94,6 +97,12 @@ class Team:
         exclude_team_result_from_opp: bool = False) -> float:
         '''
             Returns the teams average game metric (see explanation in README)
+
+            recency_bias is the absolute difference between the weight of the first game and the most recent game played
+                ex: through 10 games played, the base weight of each game is 0.1 and with a recency_bias of 0.05:
+                    the first game is weighted 0.1 - (0.05/2) = 0.075 and the most recent game is 0.1 + (0.05/2) = 0.125
+                    then, the second and second to last games have weights: 0.1 +/- (0.05/4)
+                    for the ith and (n - i + 1)th game: 0.1 +/- (0.05/2^i)
         '''
 
         # calculate the game metric for each game this team has
@@ -104,37 +113,45 @@ class Team:
                 continue
 
             # the metrics to calculate
-            opp_avg_mov: float = 0
+            opp_avg_adj_diff: float = 0
             game_mov: float = 0
             opp_win_avg: float = 0
             result_factor: float = 0
 
             if exclude_team_result_from_opp:
-                opp_avg_mov = opp_team.get_avg_differential(self)
+                opp_avg_adj_diff = opp_team.get_avg_differential(self)
                 num_games: int = opp_team.get_num_wins(self) + opp_team.get_num_losses(self)
                 opp_win_avg = opp_team.get_num_wins(self) / num_games if num_games > 0 else 0
             else:
-                opp_avg_mov = opp_team.get_avg_differential()
+                opp_avg_adj_diff = opp_team.get_avg_differential()
                 opp_win_avg = opp_team.get_num_wins() / (opp_team.get_num_wins() + opp_team.get_num_losses())
 
+            game_mov = game.get_adj_score_margin(self)
+
             if self == game.get_adj_loser():
-                game_mov = -game.get_adj_victory_margin()
                 result_factor = -loss_factor * (1 - opp_win_avg)
             else:
-                game_mov = game.get_adj_victory_margin() 
                 result_factor = win_factor * opp_win_avg
+            if not opp_team.is_fbs:
+                if result_factor >= 0:
+                    result_factor *= cfb_module.Game.fcs_game_factor
+                else:
+                    result_factor *= (1/cfb_module.Game.fcs_game_factor)
 
-            game_metric = game_mov + (opp_strength_weight * opp_avg_mov) + result_factor
+            game_metric = (opp_strength_weight * opp_avg_adj_diff) + game_mov + result_factor
+
             game_metrics.append(game_metric)
 
         # weigh each game metric according to the recency bias
         base_weight: float = 1 / len(game_metrics)
         for i in range(0, len(game_metrics) // 2):
-            game_metrics[i] *= base_weight - (recency_bias / math.pow(2, i+1))
+            adjusted_weight = base_weight - (recency_bias / math.pow(2, i+1))
+            game_metrics[i] *= adjusted_weight
         if len(game_metrics) % 2 == 1:
             game_metrics[len(game_metrics) // 2] *= base_weight
-        for i in range(math.ceil(len(game_metrics) / 2), len(game_metrics)):       
-            game_metrics[i] *= base_weight + (recency_bias / math.pow(2, len(game_metrics) - i))
+        for i in range(math.ceil(len(game_metrics) / 2), len(game_metrics)): 
+            adjusted_weight = base_weight + (recency_bias / math.pow(2, len(game_metrics) - i))   
+            game_metrics[i] *= adjusted_weight
 
         # sum the weighted metrics we want
         if ignore_worst_n != 0 or ignore_best_n != 0:
@@ -150,6 +167,7 @@ class Team:
     def get_avg_differential(self, exclude_team: Optional[Team] = None) -> float:
         '''
             Returns the average adjusted point differential for each of the team's games in their game list
+            
             Exlcudes games played against exclude_team
         '''
         
@@ -163,11 +181,7 @@ class Team:
             if opp_team == exclude_team:
                 continue
 
-            if game.get_adj_loser() == self:
-                diff -= game.get_adj_victory_margin()
-            else:
-                diff += game.get_adj_victory_margin()
-
+            diff += game.get_adj_score_margin(self)
             counted_games += 1
 
         return diff / counted_games if counted_games > 0 else 0
