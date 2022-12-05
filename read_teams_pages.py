@@ -24,8 +24,14 @@ def get_espn_team_links(espn_url: str, team_links_filename: str):
                 continue
             prev_link = team_link
 
+            conference = ""
+            for ancestor in team_link.parents:
+                if ancestor.has_attr("class") and set(ancestor["class"]) == set(["ContentList", "mt4", "ContentList--NoBorder"]):
+                    conference = ancestor.previous_sibling.text.strip()
+                    break
+
             with open(team_links_filename, "a") as f:
-                f.write(f"{team_link['href']},FBS\n")
+                f.write(f"{team_link['href']},FBS,{conference}\n")
 
         # read the FCS teams
         espn_fcs_teams_url: str = f"{espn_url}/college-football/standings/_/view/fcs-i-aa"
@@ -41,8 +47,14 @@ def get_espn_team_links(espn_url: str, team_links_filename: str):
                 continue
             prev_link = team_link
 
+            conference = ""
+            for ancestor in team_link.parents:
+                if ancestor.has_attr("class") and set(ancestor["class"]) == set(["flex"]):
+                    conference = ancestor.previous_sibling.text.strip()
+                    break
+
             with open(team_links_filename, "a") as f:
-                f.write(f"{team_link['href']},FCS\n")
+                f.write(f"{team_link['href']},FCS,{conference}\n")
 
 
 def get_teams(espn_url: str, team_links_filename: str, team_pages_dir: str) -> Tuple[Set[Team], Dict[str, Team]]:
@@ -65,7 +77,7 @@ def get_teams(espn_url: str, team_links_filename: str, team_pages_dir: str) -> T
             # process team page to get the team name
             team_soup: BeautifulSoup = BeautifulSoup(team_content, "html.parser")
             team_name: str = team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap fw-bold"}).text
-            team_conf: str = " ".join(team_soup.find("section", {"class": "Card TeamStandings"}).find("h3", {"class": "Card__Header__Title"}).text.split(" ")[1:-1])
+            team_conf: str = team_row.split(",")[2].strip()
             team: Team = Team(team_name, team_conf)
             team.is_d1 = True
             

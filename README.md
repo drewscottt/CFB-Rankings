@@ -51,50 +51,64 @@ There are two main programs:
 
 ## Current Top 25
 
-1. Georgia (+1)
-2. Ohio State (-1)
-3. Michigan (+0)
-4. Tennessee (+0)
-5. TCU (+1)
-6. Alabama (-1)
-7. Utah (+1)
-8. Clemson (+5)
-9. Penn State (+0)
-10. USC (+1)
-11. UCF (+4)
-12. LSU (+0)
-13. Oregon (-6)
-14. North Carolina (+7)
-15. Florida State (+5)
-16. South Alabama (+6)
-17. Kansas State (+8)
-18. UCLA (-8)
-19. Notre Dame (-1)
-20. UTSA (NEW)
-21. Tulane (-7)
-22. Oregon State (NEW)
-23. Washington (NEW)
-24. Texas (-8)
-25. Ole Miss (-6)
+1. Georgia (+0)
+2. Michigan (+0)
+3. Ohio State (+0)
+4. Alabama (+1)
+5. Utah (+4)
+6. Tennessee (+2)
+7. Penn State (+0)
+8. TCU (-4)
+9. Clemson (+1)
+10. Kansas State (+1)
+11. USC (-5)
+12. Florida State (+0)
+13. Oregon (+0)
+14. Texas (+0)
+15. Washington (+1)
+16. Oregon State (-1)
+17. Tulane (+1)
+18. UTSA (+3)
+19. UCLA (+0)
+20. Illinois (+0)
+21. Troy (+1)
+22. LSU (-5)
+23. South Alabama (+1)
+24. Mississippi State (+1)
+25. Notre Dame (-2)
 
-    Dropped from last Top 25: Louisville (16), Baylor (22), Illinois (23)
+    Dropped from last Top 25: None
 
 ## Track Record
 
+### FBS Games
+
 | Season, Week | Games Registered | Games Correct | Percent Correct | Games Differ Sportsbook | Games Differ Sportsbook Correct | Percent Differ Sportsbook Correct | Amount on ML | Profit From ML | Percent Profit ML |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2022, Week 14 | 12 | 8 | 66.67% | 2 | 0 | 0.00% | $1,100 | -$206.38 | -18.76% | 
+| 2022, Week 13 | 63 | 43 | 68.25% | 7 | 2 | 28.57% | $5,900 | -$458.01 | -7.76% |
+| 2022, Week 12 | 65 | 43 | 66.15% | 7 | 1 | 14.29% | $5,800 | -1,045.07 | -18.02% |
 | 2022, Week 11 | 64 | 43 | 67.19% | 11 | 4 | 36.36% | $6,100 | -$641.04 | -10.50% |
 | 2022, Week 10 | 60 | 39 | 65.00% | 11 | 4 | 36.36% | $5,800 | -$350.67 | -6.04% |
 | 2022, Week 9 | 47 | 36 | 76.60% | 9 | 5 | 55.56% | $4,600 | $513.16 | 11.16% |
 | 2022, Week 8 | 52 | 32 | 61.54% | 14 | 6 | 42.86% | $5,200 | $139.75 | 2.69% |
 | 2022, Week 7 | 51 | 30 | 58.82% | 7 | 2 | 28.57% | $4,400 | -$925.57 | -21.04% |
 | 2022, Week 6 | 57 | 39 | 68.42% | 11 | 4 | 36.36% | N/A | N/A | N/A |
-| **Totals** | **331** | **219** | **66.16%** | **63** | **25** | **39.68%** | **$26,100** | **-$1,264.37** | **-4.84%** |
+| **Totals** | **471** | **313** | **66.45%** | **63** | **25** | **39.68%** | **$38,900** | **-$2,973.83** | **-7.64%** |
 
 Notes:
-* Games Registered includes only FBS vs. FBS matchups for the week.
+* Games Registered includes only FBS vs. FBS matchups for the week for 2022 Week 6 through 2022 Week 12.
 * Sometimes ESPN doesn't include sportsbook data ~~([example](https://www.espn.com/college-football/game?gameId=401415240))~~ or sportsbook doesn't have a favorite ([example](https://www.espn.com/college-football/game?gameId=401403923)).
 * 2022, Week 7 was the first week collecting moneyline data and is incomplete due to data collection after some games had been played.
+
+### FCS Games
+
+| Season, Week | Games Registered | Games Correct | Percent Correct | Games Differ Sportsbook | Games Differ Sportsbook Correct | Percent Differ Sportsbook Correct | Amount on ML | Profit From ML | Percent Profit ML |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2022, Week 14 | 10 | 10 | 100.00% | 0 | 0 | 100.00% | | | |
+| 2022, Week 13 | 10 | 5 | 50.00% | 2 | 1 | 50.00% | | | |
+| 2022, Week 12 | 63 | 47 | 74.60% | 7 | 4 | 57.14% | | | |
+| **Totals** | **83** | **62** | **74.70%** | **9** | **5** | **55.56%** | | | |
 
 ## Ranking Methodology Change Log
 

@@ -25,6 +25,7 @@ class Game:
     adj_margin_max: float = float('inf')
     non_fbs_bonus: float = 0
     fcs_game_factor: float = 1
+    g5_game_factor: float = 1
 
     def __init__(self, home_team: cfb_module.Team, away_team: cfb_module.Team, home_score: int = 0, away_score: int = 0, espn_game_id: str = ""):
         self.home_team: cfb_module.Team = home_team
@@ -185,11 +186,15 @@ class Game:
             margin *= Game.non_fbs_loss_multiplier
 
         if not self.home_team.is_fbs and not self.away_team.is_fbs:
-        # if not self.get_opponent(query_team).is_fbs:
             if margin >= 0:
                 margin *= Game.fcs_game_factor
             else:
                 margin *= 1/Game.fcs_game_factor
+        elif self.home_team.get_conference() not in cfb_module.Team.power_5 and self.home_team.get_conference() not in cfb_module.Team.power_5:
+            if margin >= 0:
+                margin *= Game.g5_game_factor
+            else:
+                margin *= 1/Game.g5_game_factor
 
         if margin >= 0:
             return min(margin, Game.adj_margin_max)

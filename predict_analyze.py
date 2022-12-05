@@ -123,7 +123,7 @@ def get_games_to_play(get_results: bool, schedule_url: str, abbrevs: Dict[str, s
             else:
                 try:
                     result_link = game.find("td", {"class", "teams__col Table__TD"})
-                    if result_link.text == "Postponed":
+                    if result_link.text == "Postponed" or result_link.text == "Canceled":
                         continue
 
                     result_url = "https://espn.com" + result_link.find("a")["href"]

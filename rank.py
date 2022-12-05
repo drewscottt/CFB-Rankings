@@ -76,7 +76,7 @@ def compare_rankings(rank1: List[Team], rank2: List[Team], n_biggest_diff: int =
             prefix = ","
     print(dropped)
         
-def filter_ranking(ranking: List[Team], conference: str) -> List[Tuple[Team, int]]:
+def filter_ranking(ranking: List[Team], conference: str = '', division: str = '') -> List[Tuple[Team, int]]:
     '''
         Filters the given ranking by selecting only teams which match the input criteria
         Returns a list of tuples: (team, overall_ranking)
@@ -84,9 +84,66 @@ def filter_ranking(ranking: List[Team], conference: str) -> List[Tuple[Team, int
 
     filtered_ranking: List[Tuple[Team, int]] = []
     for i, team in enumerate(ranking):
-        if team.get_conference() == conference:
+        if conference == '' or team.get_conference() == conference:
             filtered_ranking.append((team, i))
-    return filtered_ranking
+
+    filtered_ranking2: List[Tuple[Team, int]] = []
+    for team_tuple in filtered_ranking:
+        if division == '' or (division == "FBS" and team_tuple[0].is_fbs) or (division == 'FCS' and not team_tuple[0].is_fbs and team_tuple[0].is_d1):
+            filtered_ranking2.append(team_tuple)
+
+    return filtered_ranking2
+
+def rank_conferences(ranking: List[Team]):
+    conferences: Dict[str, List[Tuple(Team, int)]] = {}
+    for i, team in enumerate(ranking):
+        if team.get_conference() in conferences:
+            conferences[team.get_conference()].append((team, i+1))
+        else:
+            conferences[team.get_conference()] = [(team, i+1)]
+    
+    average_ranking: Dict[str, float] = {}
+    average_top3_ranking: Dict[str, float] = {}
+    average_bot3_ranking: Dict[str, float] = {}
+    average_mid3_ranking: Dict[str, float] = {}
+    total_ranking: Dict[str, float] = {}
+    for conf, teams in conferences.items():
+        average_rank = 0
+        for team in teams:
+            average_rank += team[1]
+        average_rank /= len(teams)
+
+        top3_average_rank = (teams[0][1] + teams[1][1] + teams[2][1]) / 3
+        bot3_average_rank = (teams[-1][1] + teams[-2][1] + teams[-3][1]) / 3
+        mid3_average_rank = (teams[len(teams)//2][1] + teams[(len(teams)//2)+1][1] + teams[(len(teams)//2)+1][1]) / 3
+
+        average_ranking[conf] = average_rank
+        average_top3_ranking[conf] = top3_average_rank
+        average_bot3_ranking[conf] = bot3_average_rank
+        average_mid3_ranking[conf] = mid3_average_rank
+        total_ranking[conf] = (average_rank + top3_average_rank + bot3_average_rank + mid3_average_rank) / 4
+
+    average_ranking = list(sorted(average_ranking.items(), key=lambda item: item[1]))
+    average_top3_ranking = list(sorted(average_top3_ranking.items(), key=lambda item: item[1]))
+    average_bot3_ranking = list(sorted(average_bot3_ranking.items(), key=lambda item: item[1]))
+    average_mid3_ranking = list(sorted(average_mid3_ranking.items(), key=lambda item: item[1]))
+    total_ranking = list(sorted(total_ranking.items(), key=lambda item: item[1]))
+
+    print("Average Ranking:")
+    for i, conf in enumerate(average_ranking):
+        print(f"\t{i+1}. {conf[0]} ({conf[1]})")
+    print("\nAverage Middle 3 Ranking:")
+    for i, conf in enumerate(average_mid3_ranking):
+        print(f"\t{i+1}. {conf[0]} ({conf[1]})")
+    print("\nAverage Top 3 Ranking:")
+    for i, conf in enumerate(average_top3_ranking):
+        print(f"\t{i+1}. {conf[0]} ({conf[1]})")
+    print("\nAverage Bottom 3 Ranking:")
+    for i, conf in enumerate(average_bot3_ranking):
+        print(f"\t{i+1}. {conf[0]} ({conf[1]})")
+    print("\nTotal Ranking:")
+    for i, conf in enumerate(total_ranking):
+        print(f"\t{i+1}. {conf[0]} ({conf[1]})")
 
 def read_ranking(filename: str) -> List[Team]:
     '''
@@ -106,23 +163,27 @@ def main(teams_directory):
     Game.winner_bonus = 5
     Game.adj_margin_max = 28
     Game.non_fbs_bonus = 0
-    Game.fcs_game_factor = 0.25
+    Game.fcs_game_factor = 0.15
+    Game.g5_game_factor = 0.8
     Team.ignore_all_non_d1 = True
+    Team.non_conference_weight = 1.5
 
     fbs_seen: Set[Team] = read_teams_pages.main(teams_directory)
 
     rank1 = sorted(list(fbs_seen), key=lambda Team: Team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,win_factor=10,loss_factor=10,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_result_from_opp=True), reverse=True)
-    for i, team in enumerate(rank1):
-        print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,win_factor=10,loss_factor=10,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_result_from_opp=True)})")
+    # for i, team in enumerate(rank1):
+    #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,win_factor=10,loss_factor=10,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_result_from_opp=True)})")
 
-    # for i, team in enumerate(filter_ranking(rank1, "Pac-12")):
-    #     print(f"{i+1}. ({team[1]+1}) {team[0].get_name()} ({team[0].get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0,exclude_team_result_from_opp=True)})")
+    # for i, team in enumerate(filter_ranking(rank1, conference="SEC")):
+    #     print(f"{i+1}. ({team[1]+1}) {team[0].get_name()} ({team[0].get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0.03,exclude_team_result_from_opp=True)})")
+
+    # rank_conferences(rank1)
 
     # rank2 = sorted(list(fbs_seen), key=lambda Team: Team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,exclude_team_result_from_opp=True), reverse=True)
     # for i, team in enumerate(rank2):
     #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
 
-    compare_rankings(read_ranking("rankings/2022-week11.txt"), rank1)
+    compare_rankings(read_ranking("rankings/2022-week14.txt"), rank1)
 
 if __name__ == "__main__":
     main(sys.argv[1])

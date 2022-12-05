@@ -26,6 +26,9 @@ class Team:
     ignore_all_non_fbs: bool = False
     ignore_wins_vs_non_fbs: bool = False
     ignore_all_non_d1: bool = False
+    non_conference_weight: float = 1
+
+    power_5 = ["Pac-12", "Big Ten", "SEC", "Big 12", "ACC"]
 
     def __init__(self, team_name: str, conference: str = ""):
         self.team_name: str = team_name
@@ -128,17 +131,26 @@ class Team:
 
             game_mov = game.get_adj_score_margin(self)
 
-            if self == game.get_adj_loser():
+            if self == game.get_loser():
                 result_factor = -loss_factor * (1 - opp_win_avg)
             else:
                 result_factor = win_factor * opp_win_avg
+                
             if not opp_team.is_fbs:
                 if result_factor >= 0:
                     result_factor *= cfb_module.Game.fcs_game_factor
                 else:
                     result_factor *= (1/cfb_module.Game.fcs_game_factor)
+            elif self.get_conference() not in Team.power_5 and opp_team.get_conference() not in Team.power_5:
+                if result_factor >= 0:
+                    result_factor *= cfb_module.Game.g5_game_factor
+                else:
+                    result_factor *= 1/cfb_module.Game.g5_game_factor
 
             game_metric = (opp_strength_weight * opp_avg_adj_diff) + game_mov + result_factor
+            
+            # if self.get_conference() != opp_team.get_conference() and self.get_conference() != "FBS Independents":
+            #     game_metric *= Team.non_conference_weight
 
             game_metrics.append(game_metric)
 
