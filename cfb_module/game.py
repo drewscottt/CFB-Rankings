@@ -190,7 +190,7 @@ class Game:
                 margin *= Game.fcs_game_factor
             else:
                 margin *= 1/Game.fcs_game_factor
-        elif self.home_team.get_conference() not in cfb_module.Team.power_5 and self.home_team.get_conference() not in cfb_module.Team.power_5:
+        elif not self.home_team.is_power_5() and not self.away_team.is_power_5():
             if margin >= 0:
                 margin *= Game.g5_game_factor
             else:

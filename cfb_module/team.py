@@ -28,7 +28,7 @@ class Team:
     ignore_all_non_d1: bool = False
     non_conference_weight: float = 1
 
-    power_5 = ["Pac-12", "Big Ten", "SEC", "Big 12", "ACC"]
+
 
     def __init__(self, team_name: str, conference: str = ""):
         self.team_name: str = team_name
@@ -97,7 +97,8 @@ class Team:
         win_factor: float = 0, loss_factor: float = 0,
         opp_strength_weight: float = 1,
         recency_bias: float = 0,
-        exclude_team_result_from_opp: bool = False) -> float:
+        exclude_team_result_from_opp: bool = False
+    ) -> float:
         '''
             Returns the teams average game metric (see explanation in README)
 
@@ -116,46 +117,44 @@ class Team:
                 continue
 
             # the metrics to calculate
-            opp_avg_adj_diff: float = 0
-            game_mov: float = 0
+            opp_avg_adj_margin: float = 0
+            adj_margin: float = 0
             opp_win_avg: float = 0
             result_factor: float = 0
 
             if exclude_team_result_from_opp:
-                opp_avg_adj_diff = opp_team.get_avg_differential(self)
-                num_games: int = opp_team.get_num_wins(self) + opp_team.get_num_losses(self)
-                opp_win_avg = opp_team.get_num_wins(self) / num_games if num_games > 0 else 0
+                opp_avg_adj_margin = opp_team.get_avg_differential(self)
             else:
-                opp_avg_adj_diff = opp_team.get_avg_differential()
-                opp_win_avg = opp_team.get_num_wins() / (opp_team.get_num_wins() + opp_team.get_num_losses())
+                opp_avg_adj_margin = opp_team.get_avg_differential()
 
-            game_mov = game.get_adj_score_margin(self)
+            adj_margin = game.get_adj_score_margin(self)
 
+            num_games: int = opp_team.get_num_wins(self) + opp_team.get_num_losses(self)
+            opp_win_avg = opp_team.get_num_wins(self) / num_games if num_games > 0 else 0.5
             if self == game.get_loser():
                 result_factor = -loss_factor * (1 - opp_win_avg)
             else:
                 result_factor = win_factor * opp_win_avg
-                
             if not opp_team.is_fbs:
                 if result_factor >= 0:
                     result_factor *= cfb_module.Game.fcs_game_factor
                 else:
                     result_factor *= (1/cfb_module.Game.fcs_game_factor)
-            elif self.get_conference() not in Team.power_5 and opp_team.get_conference() not in Team.power_5:
+            elif not self.is_power_5() and not opp_team.is_power_5():
                 if result_factor >= 0:
                     result_factor *= cfb_module.Game.g5_game_factor
                 else:
                     result_factor *= 1/cfb_module.Game.g5_game_factor
 
-            game_metric = (opp_strength_weight * opp_avg_adj_diff) + game_mov + result_factor
-            
+            game_metric = (opp_strength_weight * opp_avg_adj_margin) + adj_margin + result_factor
+
             # if self.get_conference() != opp_team.get_conference() and self.get_conference() != "FBS Independents":
             #     game_metric *= Team.non_conference_weight
 
             game_metrics.append(game_metric)
 
         # weigh each game metric according to the recency bias
-        base_weight: float = 1 / len(game_metrics)
+        base_weight: float = 1 / len(game_metrics) if len(game_metrics) > 0 else 0
         for i in range(0, len(game_metrics) // 2):
             adjusted_weight = base_weight - (recency_bias / math.pow(2, i+1))
             game_metrics[i] *= adjusted_weight
@@ -244,3 +243,9 @@ class Team:
 
     def get_conference(self) -> str:
         return self.conference
+
+    def is_power_5(self) -> bool:
+        power_5: List[str] = ["Pac-12", "Big Ten", "SEC", "Big 12", "ACC"]
+
+        return self.get_conference() in power_5 or self.get_name() == "Notre Dame"
+    
