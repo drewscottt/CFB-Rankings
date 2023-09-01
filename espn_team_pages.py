@@ -10,9 +10,7 @@ import sys
 from typing import List, Dict
 
 from cfb_module import Team
-from lib import ESPNParserV1 as parser 
-
-espn_url: str = "https://www.espn.com"
+from lib import ESPNParserV1 as parser, ESPN_URL_PREFIX
 
 def _get_team_data_from_subdivision_page() -> List[Dict[str, str]]:
     team_data: List[Dict[str, str]] = []
@@ -21,7 +19,7 @@ def _get_team_data_from_subdivision_page() -> List[Dict[str, str]]:
     team_data_from_subdivision_pages_filename: str = "team_links.csv"
     if not os.path.isfile(team_data_from_subdivision_pages_filename):
         # we haven't already sent this request, so go to espn.com
-        team_data: List[Dict[str, str]] = parser.get_team_data_from_subdivision_pages(espn_url)
+        team_data: List[Dict[str, str]] = parser.get_team_data_from_subdivision_pages(ESPN_URL_PREFIX)
 
         # cache the result
         with open(team_data_from_subdivision_pages_filename, "a") as f:
@@ -49,7 +47,7 @@ def _add_espn_team_pages_to_team_data(
         # get the team page
         team_url: str = team_fields["url"]
         
-        team_fields["team_page"] = _get_espn_team_page(f"{espn_url}{team_url}", team_pages_dir)
+        team_fields["team_page"] = _get_espn_team_page(f"{ESPN_URL_PREFIX}{team_url}", team_pages_dir)
 
     return team_data
 
@@ -78,7 +76,7 @@ def get_espn_team_pages(
     team_data: List[Dict[str, str]] = _get_team_data_from_subdivision_page()
 
     for team_fields in team_data:
-        _ = _get_espn_team_page(f"{espn_url}{team_fields['url']}", team_pages_dir)
+        _ = _get_espn_team_page(f"{ESPN_URL_PREFIX}{team_fields['url']}", team_pages_dir)
 
 def _get_espn_team_page(
     url: str,
@@ -88,9 +86,7 @@ def _get_espn_team_page(
     team_page: str = ""
     if not os.path.isfile(team_filename):
         # we haven't cached it yet, so go get it from espn.com
-        headers = {
-            'User-Agent': 'Chrome/58.0.3029.110'
-        }
+        headers = {"User-Agent": "Chrome/58.0.3029.110"}
         team_page = requests.get(url, headers=headers).text
 
         # cache it

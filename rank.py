@@ -158,33 +158,38 @@ def read_ranking(filename: str) -> List[Team]:
             ranking.append(team)
     return ranking
 
-def main(teams_directory):
+def main():
+    teams_directory: str = sys.argv[1]
+
     Game.away_disadvantage = 2
     Game.winner_bonus = 5
-    Game.adj_margin_max = 28
+    Game.adjusted_margin_cap = 28
     Game.non_fbs_bonus = 0
     Game.fcs_game_factor = 0.15
     Game.g5_game_factor = 0.8
+    Game.loss_adjustment = 10
+    Game.win_adjustment = 10
+
     Team.ignore_all_non_d1 = True
     Team.non_conference_weight = 1.5
 
     teams: List[Team] = espn_team_pages.create_teams(teams_directory)
 
-    rank1 = sorted(teams, key=lambda Team: Team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,win_factor=10,loss_factor=10,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_result_from_opp=True), reverse=True)
+    rank1 = sorted(teams, key=lambda Team: Team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_result_from_opp=True), reverse=True)
     
     for i, team in enumerate(rank1):
-        print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,win_factor=10,loss_factor=10,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_result_from_opp=True)})")
+        print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_result_from_opp=True)})")
 
     # for i, team in enumerate(filter_ranking(rank1, conference="SEC")):
-    #     print(f"{i+1}. ({team[1]+1}) {team[0].get_name()} ({team[0].get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,recency_bias=0.03,exclude_team_result_from_opp=True)})")
+    #     print(f"{i+1}. ({team[1]+1}) {team[0].get_name()} ({team[0].get_avg_game_metric(0,0,opp_strength_weight=.5,recency_bias=0.03,exclude_team_result_from_opp=True)})")
 
     # rank_conferences(rank1)
 
-    # rank2 = sorted(teams, key=lambda Team: Team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,exclude_team_result_from_opp=True), reverse=True)
+    # rank2 = sorted(teams, key=lambda Team: Team.get_avg_game_metric(0,0,opp_strength_weight=.5,exclude_team_result_from_opp=True), reverse=True)
     # for i, team in enumerate(rank2):
-    #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,win_factor=10,loss_factor=10,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
+    #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
 
     # compare_rankings(read_ranking("rankings/2022-week14.txt"), rank1)
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main()

@@ -2,10 +2,50 @@
 '''
 
 import sys
+import os
+import requests
 from typing import Dict, List, Tuple, Optional
 
 from cfb_module import Game, Team
 from lib import ESPNParserV1 as parser
+
+def get_preview_page(preview_url: str) -> str:
+    # get the preview page from preview_game_pages
+    preview_filename = os.path.join("preview_game_pages", preview_url.split("=")[1] + ".html")
+    if not os.path.isfile(preview_filename):
+        headers = {"User-Agent": "Chrome/58.0.3029.110"}
+        preview_page: str = requests.get(preview_url, headers=headers).text
+
+        if parser.get_game_state(preview_page) != "preview":
+            return ""
+
+        # cache result if the game is not complete
+        with open(preview_filename, "w") as f:
+            f.write(str(preview_page))
+
+        return preview_page
+
+    with open(preview_filename, "r") as f:
+        return f.read()
+
+def get_result_page(result_url: str) -> str:
+    # get the results page either from local cache or espn.com
+    result_filename = os.path.join("completed_game_pages", result_url.split("=")[1] + ".html")
+    if not os.path.isfile(result_filename):
+        headers = {"User-Agent": "Chrome/58.0.3029.110"}
+        result_page: str = requests.get(result_url, headers=headers).text
+
+        if parser.get_game_state(result_page) != "complete":
+            return ""
+
+        # cache result if the game is complete
+        with open(result_filename, "w") as f:
+            f.write(str(result_page))
+
+        return result_page
+    
+    with open(result_filename, "r") as f:
+        return f.read()
 
 def analyze_predictions(ranking: Dict[str, str], espn_schedule_url: str):
     '''
@@ -20,7 +60,15 @@ def analyze_predictions(ranking: Dict[str, str], espn_schedule_url: str):
             abbrevs[abbrev] = name
 
     # get the games and their outcomes
-    games: List[Game] = parser.get_games_to_play(True, espn_schedule_url, abbrevs)
+    games: List[Game] = parser.get_games_on_schedule(espn_schedule_url)
+
+    # update each game with result and betting info
+    for game in games:
+        preview_page = get_preview_page(game.get_url())
+        parser.process_game_preview(preview_page, game)
+
+        result_page = get_result_page(game.get_url())
+        parser.process_game_result(result_page, game, abbrevs)
 
     # go through each game, and summarize data about the prediction
     num_correct: int = 0
@@ -35,14 +83,18 @@ def analyze_predictions(ranking: Dict[str, str], espn_schedule_url: str):
         winning_team: Team = game.get_winner()
         losing_team: Team = game.get_loser()
 
+        if winning_team is None or losing_team is None:
+            continue
+
         if winning_team.get_name() not in ranking or losing_team.get_name() not in ranking:
             continue
 
+        games_predicted += 1
+
         winner_ml: int = game.get_winner_ml()
+
         winning_rank: int = ranking[winning_team.get_name()]
         losing_rank: int = ranking[losing_team.get_name()]
-
-        games_predicted += 1
 
         rankings_favorite: Team = winning_team
         if losing_rank < winning_rank:

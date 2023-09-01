@@ -7,10 +7,7 @@ from typing import Dict, List
 from cfb_module import Game, Team
 from lib import ESPNParserV1 as parser  
 
-def predict_schedule(
-    ranking_filename: str,
-    espn_schedule_url: str 
-):
+def predict_schedule(ranking_filename: str, espn_schedule_url: str):
     '''
         Prints the predictions of each game to be played based on the ranking and the supplied espn schedule
     '''
@@ -23,7 +20,7 @@ def predict_schedule(
             ranking[team_name] = i + 1
 
     # read the games from the schedule
-    games: List[Game] = parser.get_games_to_play(False, espn_schedule_url)
+    games: List[Game] = parser.get_games_on_schedule(espn_schedule_url)
     for game in games:
         home_team: Team = game.get_home_team()
         away_team: Team = game.get_away_team()
@@ -42,7 +39,7 @@ def predict_schedule(
 def main():
     ranking_filename: str = sys.argv[1]
     espn_schedule_url: str = "https://www.espn.com/college-football/schedule/" if len(sys.argv) == 2 else sys.argv[2]
-    
+
     predict_schedule(ranking_filename, espn_schedule_url)
 
 if __name__ == "__main__":

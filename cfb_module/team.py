@@ -17,9 +17,10 @@
 '''
 
 from __future__ import annotations
-import cfb_module
 import math
-from typing import List, Optional
+from typing import List, Optional, Set
+
+import cfb_module
 
 class Team:
     # use to tweak settings on processing FCS games
@@ -27,8 +28,6 @@ class Team:
     ignore_wins_vs_non_fbs: bool = False
     ignore_all_non_d1: bool = False
     non_conference_weight: float = 1
-
-
 
     def __init__(self, team_name: str, conference: str = ""):
         self.team_name: str = team_name
@@ -53,7 +52,7 @@ class Team:
                 return False
 
             # do not add the game if it is non-fbs opponent and the ignore_all_non_fbs flag is set
-            if Team.ignore_all_non_fbs and not opp_team.is_fbs:
+            if Team.ignore_all_non_fbs and not opp_team.is_fbs():
                 return False
 
             if Team.ignore_all_non_d1 and not opp_team.is_d1:
@@ -63,7 +62,7 @@ class Team:
                 self.num_losses += 1
             else:
                 # do not add the game if it is a win against a non-fbs opponent and the ignore_wins_vs_non_fbs flag is set
-                if Team.ignore_wins_vs_non_fbs and not opp_team.is_fbs:
+                if Team.ignore_wins_vs_non_fbs and not opp_team.is_fbs():
                     return False
 
                 self.num_wins += 1
@@ -93,8 +92,10 @@ class Team:
         self.is_fbs = is_fbs
 
     def get_avg_game_metric(self, 
-        ignore_worst_n: int = 0, ignore_best_n: int = 0, 
-        win_factor: float = 0, loss_factor: float = 0,
+        ignore_worst_n: int = 0,
+        ignore_best_n: int = 0, 
+        win_factor: float = 0,
+        loss_factor: float = 0,
         opp_strength_weight: float = 1,
         recency_bias: float = 0,
         exclude_team_result_from_opp: bool = False
@@ -112,41 +113,25 @@ class Team:
         # calculate the game metric for each game this team has
         game_metrics: List[float] = []
         for game in self.games:
-            opp_team: Optional[Team] = game.get_opponent(self)
-            if opp_team is None:
+            opponent: Optional[Team] = game.get_opponent(self)
+            if opponent is None:
                 continue
 
             # the metrics to calculate
             opp_avg_adj_margin: float = 0
             adj_margin: float = 0
-            opp_win_avg: float = 0
-            result_factor: float = 0
+            result_adjustment: float = 0
 
             if exclude_team_result_from_opp:
-                opp_avg_adj_margin = opp_team.get_avg_differential(self)
+                opp_avg_adj_margin = opponent.get_avg_differential(self)
             else:
-                opp_avg_adj_margin = opp_team.get_avg_differential()
+                opp_avg_adj_margin = opponent.get_avg_differential()
 
-            adj_margin = game.get_adj_score_margin(self)
+            adj_margin = game.get_adjusted_score_margin(self)
 
-            num_games: int = opp_team.get_num_wins(self) + opp_team.get_num_losses(self)
-            opp_win_avg = opp_team.get_num_wins(self) / num_games if num_games > 0 else 0.5
-            if self == game.get_loser():
-                result_factor = -loss_factor * (1 - opp_win_avg)
-            else:
-                result_factor = win_factor * opp_win_avg
-            if not opp_team.is_fbs:
-                if result_factor >= 0:
-                    result_factor *= cfb_module.Game.fcs_game_factor
-                else:
-                    result_factor *= (1/cfb_module.Game.fcs_game_factor)
-            elif not self.is_power_5() and not opp_team.is_power_5():
-                if result_factor >= 0:
-                    result_factor *= cfb_module.Game.g5_game_factor
-                else:
-                    result_factor *= 1/cfb_module.Game.g5_game_factor
+            result_adjustment = game.get_game_result_adjustment(self)
 
-            game_metric = (opp_strength_weight * opp_avg_adj_margin) + adj_margin + result_factor
+            game_metric = (opp_strength_weight * opp_avg_adj_margin) + adj_margin + result_adjustment
 
             # if self.get_conference() != opp_team.get_conference() and self.get_conference() != "FBS Independents":
             #     game_metric *= Team.non_conference_weight
@@ -192,7 +177,7 @@ class Team:
             if opp_team == exclude_team:
                 continue
 
-            diff += game.get_adj_score_margin(self)
+            diff += game.get_adjusted_score_margin(self)
             counted_games += 1
 
         return diff / counted_games if counted_games > 0 else 0
@@ -245,7 +230,24 @@ class Team:
         return self.conference
 
     def is_power_5(self) -> bool:
-        power_5: List[str] = ["Pac-12", "Big Ten", "SEC", "Big 12", "ACC"]
+        '''
+            A team is power 5 if it is in a power 5 conference or is Notre Dame
+        '''
 
-        return self.get_conference() in power_5 or self.get_name() == "Notre Dame"
+        power_5_conferences: Set[str] = {"Pac-12", "Big Ten", "SEC", "Big 12", "ACC"}
+
+        return self.get_conference() in power_5_conferences or self.get_name() == "Notre Dame"
+    
+    def is_fbs(self) -> bool:
+        return self.is_fbs
+    
+    def __eq__(self, other) -> bool:
+        '''
+            Two teams are equal if they have the same name
+        '''
+
+        if isinstance(other, Team):
+            return self.get_name() == other.get_name()
+        else:
+            return False
     

@@ -5,37 +5,31 @@
 
 from __future__ import annotations
 import requests
-from typing import List, Dict, Optional, Set, Tuple
-import os.path
+from typing import List, Dict, Optional, Tuple
 import re
 
 from bs4 import BeautifulSoup
 
-from cfb_module import Game, Team
-
+import cfb_module
 import lib
 
 class ESPNParserV1(lib.Parser):
     @classmethod
-    def get_games_to_play(
-        cls: lib.Parser,
-        get_results: bool,
-        schedule_url: str,
-        abbrevs: Dict[str, str] = {}
-    ) -> List[Game]:
+    def get_games_on_schedule(cls: lib.Parser, schedule_url: str) -> List[cfb_module.Game]:
         '''
             Extracts all of the games that are on the schedule, getting the results pages if necessary
         '''
 
-        schedule = requests.get(schedule_url).text
+        headers = {"User-Agent": "Chrome/58.0.3029.110"}
+        schedule = requests.get(schedule_url, headers=headers).text
         soup = BeautifulSoup(schedule, 'html.parser')
 
-        games_to_play: List[Game] = []
+        all_games: List[cfb_module.Game] = []
         game_days = soup.find_all("div", {"class": "ScheduleTables mb5 ScheduleTables--ncaaf ScheduleTables--football"})
         for game_day in game_days:
-            games = game_day.find_all("tr", {"class": "Table__TR Table__TR--sm Table__even"})
-            for game in games:
-                teams = game.find_all("span", {"class": "Table__Team"})
+            game_rows = game_day.find_all("tr", {"class": "Table__TR Table__TR--sm Table__even"})
+            for game_row in game_rows:
+                teams = game_row.find_all("span", {"class": "Table__Team"})
 
                 try:
                     away_team_name: str = teams[0].find_all("a")[1].text
@@ -44,131 +38,93 @@ class ESPNParserV1(lib.Parser):
                     # a team doesn't have ESPN team page linked, so we just ignore this game
                     continue
 
-                if not get_results:
-                    # we don't need to extract the game's results, so we have all we need
-                    games_to_play.append(Game(Team(home_team_name), Team(away_team_name)))
-                else:
-                    try:
-                        result_link = game.find("td", {"class", "teams__col Table__TD"})
-                        if result_link.text == "Postponed" or result_link.text == "Canceled":
-                            continue
+                home_team: cfb_module.Team = cfb_module.Team(home_team_name)
+                away_team: cfb_module.Team = cfb_module.Team(away_team_name)
 
-                        result_url = "https://espn.com" + result_link.find("a")["href"]
-                        game_data = {}
-                        game_data["home_team_name"] = home_team_name
-                        game_data["away_team_name"] = away_team_name
-                        cls.process_game_preview(result_url, game_data)
-                        cls.process_game_result(result_url, game_data, abbrevs)
+                url: str
+                try:
+                    result_link = game_row.find("td", {"class", "teams__col Table__TD"})
+                    if result_link.text == "Postponed" or result_link.text == "Canceled":
+                        continue
 
-                        game = Game(Team(home_team_name), Team(away_team_name), game_data["home_score"], game_data["away_score"], result_url.split("/")[-1])
-                        if "sportsbook_favorite" in game_data and "spread" in game_data:
-                            game.set_odds(game_data["sportsbook_favorite"], game_data["spread"])
-                        
-                        if "home_ml" in game_data and "away_ml" in game_data:
-                            game.set_mls(game_data["home_ml"], game_data["away_ml"])
+                    url = lib.ESPN_URL_PREFIX + result_link.find("a")["href"]
+                except AttributeError:
+                    # we will get here if the game hasn't been played yet
+                    url = lib.ESPN_URL_PREFIX + game_row.find("td", {"class", "date__col Table__TD"}).find("a")["href"]
 
-                        games_to_play.append(game)
-                    except AttributeError:
-                        # we will get here if the game hasn't been played yet, cheap hack :)
-                        # save the preview game page in case we want its data after the game is complete
-                        preview_url = "https://espn.com" + game.find("td", {"class", "date__col Table__TD"}).find("a")["href"]
-                        cls.save_preview_page(preview_url)
+                game: cfb_module.Game = cfb_module.Game(home_team, away_team, espn_game_id=url.split("/")[-1], url=url)
+                
+                all_games.append(game)
 
-        return games_to_play
+        return all_games
 
     @classmethod
-    def process_game_result(cls: lib.Parser, result_url: str, game_data: dict, abbrevs: Dict[str, str]):
+    def process_game_result(cls: lib.Parser, result_page: str, game: cfb_module.Game, abbrevs: Dict[str, str]):
         '''
             Reads the final score and spread for the completed game
         '''
 
-        # get the results page, checking if it's already saved locally in game_pages
-        result_filename = os.path.join("completed_game_pages", result_url.split("=")[1] + ".html")
-        if not os.path.isfile(result_filename):
-            result = requests.get(result_url).text
-            with open(result_filename, "w") as f:
-                f.write(str(result))
-        else:
-            with open(result_filename, "r") as f:
-                result = f.read()
-
-        # parse the results page, getting the scores
-        result_soup = BeautifulSoup(result, "html.parser")
-        final_scores = result_soup.find_all("td", {"class", "final-score"})
-        away_score = int(final_scores[0].text)
-        home_score = int(final_scores[1].text)
-        winning_team_name = game_data["home_team_name"]
-        if away_score > home_score:
-            winning_team_name = game_data["away_team_name"]
-
-        game_data["home_score"] = home_score
-        game_data["away_score"] = away_score
-        game_data["winning_team_name"] = winning_team_name
-
-        # parse the results page, getting the sportsbook prediction
-        try:
-            odds = result_soup.find("div", {"class": "odds-lines-plus-logo"}).find("ul").find("li").text
-            line_info = odds.split(" ")
-            if len(line_info) == 2:
-                sportsbook_favorite = ""
-                spread = 0
-            else:
-                sportsbook_favorite = abbrevs[line_info[1]]
-                spread = float(line_info[2])
-
-            game_data["sportsbook_favorite"] = sportsbook_favorite
-            game_data["spread"] = spread
-        except AttributeError:
+        if result_page == "":
             return
 
+        # parse the results page, getting the scores
+        result_soup: BeautifulSoup = BeautifulSoup(result_page, "html.parser")
+
+        final_scores = result_soup.find_all("td", {"class", "final-score"})
+        if len(final_scores) >= 2:
+            game.set_away_score(int(final_scores[0].text))
+            game.set_home_score(int(final_scores[1].text))
+        elif len(final_scores) == 0:
+            score_rows = result_soup.find_all("tr", {"class", "Table__TR Table__TR--sm Table__even"})
+            scores = []
+            for score_row in score_rows[:2]:
+                scores.append(int(score_row.find_all("td")[-1].text))
+            game.set_away_score(scores[0])
+            game.set_home_score(scores[1])
+
+        # TODO: fix this nastiness
+        try:
+            odds: str = result_soup.find("div", {"class": "odds-lines-plus-logo"}).find("ul").find("li").text
+
+            line_info: str = odds.split(" ")
+            if len(line_info) > 2:
+                game.set_odds(abbrevs[line_info[1]], float(line_info[2]))
+        except AttributeError:
+            try:
+                odds: str = result_soup.find("div", {"class", "n8 GameInfo__BettingItem flex-expand line"}).text
+                line_info: str = odds.split(" ")
+                game.set_odds(abbrevs[line_info[1]], float(line_info[2]))
+            except:
+                return
+
     @classmethod
-    def process_game_preview(cls: lib.Parser, preview_url: str, game_data: dict):
+    def process_game_preview(cls: lib.Parser, preview_page: str, game: cfb_module.Game):
         '''
             Reads the moneyline for the game
         '''
 
-        # get the results page, checking if it's already saved locally in game_pages
-        preview_filename = os.path.join("preview_game_pages", preview_url.split("=")[1] + ".html")
-        if os.path.isfile(preview_filename):
-            with open(preview_filename, "r") as f:
-                preview = f.read()
+        soup: BeautifulSoup = BeautifulSoup(preview_page, "html.parser")
 
-            soup: BeautifulSoup = BeautifulSoup(preview, "html.parser")
-            try:
-                pick_center = soup.find("div", {"class": "pick-center-content"})
-                re.DOTALL = True
-                home_moneyline = pick_center.find("td", text=re.compile(".*Money Line.*")).next_sibling.next_sibling.text.strip()
-                away_moneyline = pick_center.find("td", text=re.compile(".*Money Line.*")).previous_sibling.previous_sibling.text.strip()
-                if home_moneyline != "--" and away_moneyline != "--":
-                    game_data["home_ml"] = int(home_moneyline.replace(",", ""))
-                    game_data["away_ml"] = int(away_moneyline.replace(",", ""))
-            except AttributeError:
-                # no pick center for this game preview
-                return
+        try:
+            pick_center = soup.find("div", {"class": "pick-center-content"})
+
+            re.DOTALL = True
+            home_moneyline = pick_center.find("td", text=re.compile(".*Money Line.*")).next_sibling.next_sibling.text.strip()
+            away_moneyline = pick_center.find("td", text=re.compile(".*Money Line.*")).previous_sibling.previous_sibling.text.strip()
+            if home_moneyline != "--" and away_moneyline != "--":
+                game.set_mls(int(home_moneyline.replace(",", "")), int(away_moneyline.replace(",", "")))
+        except AttributeError:
+            # no pick center for this page
+            return
 
     @classmethod 
-    def save_preview_page(cls: lib.Parser, preview_url: str):
-        '''
-            Saves the game page at this url into preview_game_pages
-        '''
-
-        preview_filename = os.path.join("preview_game_pages", preview_url.split("=")[1] + ".html")
-        if not os.path.isfile(preview_filename):
-            preview = requests.get(preview_url).text
-            with open(preview_filename, "w") as f:
-                f.write(str(preview))
-
-    @classmethod 
-    def get_team_data_from_subdivision_pages(
-        cls: lib.Parser,
-        espn_url: str,
-    ) -> List[Dict[str, str]]:
+    def get_team_data_from_subdivision_pages(cls: lib.Parser) -> List[Dict[str, str]]:
         team_data: List[Dict[str, str]] = []
 
         team_link_prefix: str = "/college-football/team/_/id/"
 
         # read the FBS teams
-        espn_fbs_teams_url: str = f"{espn_url}/college-football/teams"
+        espn_fbs_teams_url: str = f"{lib.ESPN_URL_PREFIX}/college-football/teams"
         fbs_teams_content: str = requests.get(espn_fbs_teams_url).text
         fbs_teams_soup: BeautifulSoup = BeautifulSoup(fbs_teams_content, "html.parser")
 
@@ -194,7 +150,7 @@ class ESPNParserV1(lib.Parser):
                 })
 
         # read the FCS teams
-        espn_fcs_teams_url: str = f"{espn_url}/college-football/standings/_/view/fcs-i-aa"
+        espn_fcs_teams_url: str = f"{lib.ESPN_URL_PREFIX}/college-football/standings/_/view/fcs-i-aa"
         fcs_teams_content: str = requests.get(espn_fcs_teams_url).text
         fcs_teams_soup: BeautifulSoup = BeautifulSoup(fcs_teams_content, "html.parser")
 
@@ -226,10 +182,10 @@ class ESPNParserV1(lib.Parser):
         cls: lib.Parser,
         team_data: List[Dict[str, str]],
         trunc_to_full: Dict[str, str],
-    ) -> List[Team]:
+    ) -> List[cfb_module.Team]:
         # first, create all of the team objects based on simple data
-        teams: List[Team] = []
-        teams_lookup: Dict[str, Team] = {}
+        teams: List[cfb_module.Team] = []
+        teams_lookup: Dict[str, cfb_module.Team] = {}
         for team_fields in team_data:
             # process team page
             team_soup: BeautifulSoup = BeautifulSoup(team_fields["team_page"], "html.parser")
@@ -237,7 +193,7 @@ class ESPNParserV1(lib.Parser):
             team_name: str = team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap fw-bold"}).text
             team_conf: str = team_fields["conference"].strip()
 
-            team: Team = Team(team_name, team_conf)
+            team: cfb_module.Team = cfb_module.Team(team_name, team_conf)
             team.is_d1 = True
             if team_fields["subdivision"].strip() == "FBS":
                 team.set_fbs(True)
@@ -253,7 +209,7 @@ class ESPNParserV1(lib.Parser):
 
             team_name: str = team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap fw-bold"}).text
 
-            team: Team = teams_lookup[team_name]
+            team: cfb_module.Team = teams_lookup[team_name]
 
             # process all the game results for the team
             result_spans = team_soup.find_all("span", {"class": "Schedule__Result"})
@@ -275,10 +231,10 @@ class ESPNParserV1(lib.Parser):
     def process_game(
         cls: lib.Parser,
         result_span,
-        team: Team,
+        team: cfb_module.Team,
         trunc_to_full: Dict[str, str],
-        teams_seen: Dict[str, Team]
-    ) -> Tuple[Game, Team]:
+        teams_seen: Dict[str, cfb_module.Team]
+    ) -> Tuple[cfb_module.Game, cfb_module.Team]:
         game_div = result_span.find_parent("div").find_parent("div")
         
         espn_game_id = game_div.find_parent("a")["href"].split("/")[-1]
@@ -294,16 +250,16 @@ class ESPNParserV1(lib.Parser):
             game_opp_full = game_opp_trunc
 
         # use the opponent's full name to find the Team itself
-        opp_team: Optional[Team] = None
+        opp_team: Optional[cfb_module.Team] = None
         if game_opp_full in teams_seen:
             opp_team = teams_seen[game_opp_full]
         else:
-            opp_team = Team(game_opp_full)
+            opp_team = cfb_module.Team(game_opp_full)
             teams_seen[game_opp_full] = opp_team
 
         # determine home/away
         game_at_vs: str = game_div.find("span", {"class": "Schedule_atVs"}).text
-        home_team: Optional[Team] = None
+        home_team: Optional[cfb_module.Team] = None
         if game_at_vs == "@":
             home_team = opp_team
             away_team = team
@@ -337,6 +293,23 @@ class ESPNParserV1(lib.Parser):
                 away_score = winner_score
 
         # create the game
-        game: Game = Game(home_team, away_team, home_score, away_score, espn_game_id)
+        game: cfb_module.Game = cfb_module.Game(home_team, away_team, home_score, away_score, espn_game_id)
 
         return game, opp_team
+    
+    @classmethod
+    def get_game_state(cls: lib.Parser, game_page: str) -> str:
+        '''
+        '''
+
+        soup: BeautifulSoup = BeautifulSoup(game_page, "html.parser")
+
+        winner_icon = soup.select("svg.Gamestrip__WinnerIcon.icon__svg")
+        if len(winner_icon) != 0:
+            return "complete"
+        
+        team_score = soup.select("div.Gamestrip__Score.relative.tc.w-100.fw-heavy.h2.clr-gray-01")
+        if len(team_score) != 0:
+            return "active"
+        
+        return "preview"

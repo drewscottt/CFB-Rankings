@@ -5,16 +5,16 @@ from __future__ import annotations
 from typing import Dict, List, Tuple, Set
 from abc import abstractclassmethod
 
-from cfb_module import Game, Team
+import cfb_module
 
 class Parser():
     @abstractclassmethod
-    def get_games_to_play(
+    def get_games_on_schedule(
         cls: Parser,
         get_results: bool,
         schedule_url: str,
         abbrevs: Dict[str, str] = {}
-    ) -> List[Game]:
+    ) -> List[cfb_module.Game]:
         pass
     
     @abstractclassmethod
@@ -54,7 +54,7 @@ class Parser():
         espn_url: str,
         team_links_filename: str,
         team_pages_dir: str
-    ) -> Tuple[Set[Team], Dict[str, Team]]:
+    ) -> Tuple[Set[cfb_module.Team], Dict[str, cfb_module.Team]]:
         pass
 
     @abstractclassmethod
@@ -62,7 +62,7 @@ class Parser():
         cls: Parser,
         team_links_filename: str,
         team_pages_dir: str,
-        teams_seen: Dict[str, Team],
+        teams_seen: Dict[str, cfb_module.Team],
         trunc_to_full: Dict[str, str]
     ):
         pass
@@ -71,8 +71,8 @@ class Parser():
     def process_game(
         cls: Parser,
         result_span,
-        team: Team,
+        team: cfb_module.Team,
         trunc_to_full: Dict[str, str],
-        teams_seen: Dict[str, Team]
-    ) -> Tuple[Game, Team]:
+        teams_seen: Dict[str, cfb_module.Team]
+    ) -> Tuple[cfb_module.Game, cfb_module.Team]:
         pass
