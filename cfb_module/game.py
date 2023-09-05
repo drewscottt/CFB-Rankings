@@ -22,14 +22,19 @@ import lib
 class Game:
     home_advantage: float = 0
     away_disadvantage: float = 0
-    winner_bonus: float = 0
+
     non_fbs_loss_multiplier: float = 1
-    adjusted_margin_cap: float = float('inf')
     non_fbs_bonus: float = 0
-    fcs_game_factor: float = 1
-    g5_game_factor: float = 1
+
+    fcs_game_scalar: float = 1
+    g5_game_scalar: float = 1
+
+    adjusted_margin_cap: float = float('inf')
+
     loss_adjustment: float = 0
     win_adjustment: float = 0
+
+    previous_season_scalar: float = 0
 
     def __init__(
         self, 
@@ -39,7 +44,8 @@ class Game:
         away_score: int = 0,
         espn_game_id: str = "",
         url: str = "",
-        neutral_game: bool = False
+        neutral_game: bool = False,
+        previous_season: bool = False,
     ):
         self.home_team: cfb_module.Team = home_team
         self.away_team: cfb_module.Team = away_team
@@ -51,6 +57,8 @@ class Game:
         self.url: str = url
 
         self.neutral_game: bool = neutral_game
+
+        self.previous_season: bool = previous_season
 
         self.sportsbook_favorite: Optional[cfb_module.Team] = None
         self.spread: float = 0
@@ -230,26 +238,45 @@ class Game:
         else:
             return self.away_ml
         
+    def set_previous_season(self, previous_season: bool):
+        '''
+        '''
+
+        self.previous_season = previous_season
+
+    def is_previous_season(self) -> bool:
+        '''
+        '''
+
+        return self.previous_season
+        
     def scale_result_for_level(self, result: float) -> float:
         '''
         '''
 
+        scalar: float = 1
         if not self.home_team.is_fbs() or not self.away_team.is_fbs():
-            # if one of the two teams is not FBS, apply the FCS game factor
-            if result >= 0:
-                result *= Game.fcs_game_factor
-            else:
-                result *= 1/Game.fcs_game_factor
+            scalar = Game.fcs_game_scalar
         elif not self.home_team.is_power_5() or not self.away_team.is_power_5():
-            # if one of the two teams is not power 5, apply the G5 game factor
-            if result >= 0:
-                result *= Game.g5_game_factor
-            else:
-                result *= 1/Game.g5_game_factor
+            scalar = Game.g5_game_scalar
 
+        if result >= 0:
+            # if the result was positive, make it smaller
+            return result * scalar
+
+        # if the result was negative, make it bigger (i.e. more negative)
+        return result / scalar
+    
+    def scale_result_for_season(self, result: float) -> float:
+        '''
+        '''
+
+        if self.is_previous_season():
+            return result * Game.previous_season_scalar
+        
         return result
 
-    def get_adjusted_score_margin(self, query_team: cfb_module.Team) -> float:
+    def get_adjusted_margin(self, query_team: cfb_module.Team) -> float:
         '''
             Returns the query_team's scoring margin in this game
         '''
@@ -263,6 +290,7 @@ class Game:
             adjusted_margin *= Game.non_fbs_loss_multiplier
 
         adjusted_margin = self.scale_result_for_level(adjusted_margin)
+        adjusted_margin = self.scale_result_for_season(adjusted_margin)
 
         return lib.clip_to_range(adjusted_margin, -Game.adjusted_margin_cap, Game.adjusted_margin_cap)
 
@@ -275,9 +303,6 @@ class Game:
     
         if not self.neutral_game:
             adjusted_score -= Game.home_advantage
-
-        if self.get_winner() == self.home_team:
-            adjusted_score += Game.winner_bonus
 
         if not self.home_team.is_fbs() and self.away_team.is_fbs():
             adjusted_score += Game.non_fbs_bonus
@@ -294,30 +319,28 @@ class Game:
         if not self.neutral_game:
             adjusted_score += Game.away_disadvantage
 
-        if self.get_winner() == self.away_team:
-            adjusted_score += Game.winner_bonus
-
         if not self.away_team.is_fbs() and self.home_team.is_fbs():
             adjusted_score += Game.non_fbs_bonus
 
         return adjusted_score
     
-    def get_game_result_adjustment(self, query_team: cfb_module.Team) -> float:
+    def get_result_adjustment(self, query_team: cfb_module.Team) -> float:
         '''
         '''
 
-        opponent = self.get_opponent(query_team)
+        opponent: cfb_module.Team = self.get_opponent(query_team)
 
         total_opponent_games: int = opponent.get_num_wins(self) + opponent.get_num_losses(self)
-        opponent_win_avg = opponent.get_num_wins(self) / total_opponent_games if total_opponent_games > 0 else 0.5
+        opponent_win_avg: float = opponent.get_num_wins(self) / total_opponent_games if total_opponent_games > 0 else 0.5
 
-        result_adjustment = 0
+        result_adjustment: float = 0
         if query_team == self.get_loser():
             result_adjustment = -Game.loss_adjustment * (1 - opponent_win_avg)
         else:
             result_adjustment = Game.win_adjustment * opponent_win_avg
 
         result_adjustment = self.scale_result_for_level(result_adjustment)
+        result_adjustment = self.scale_result_for_season(result_adjustment)
 
         return result_adjustment
 

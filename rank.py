@@ -5,9 +5,11 @@
 '''
 
 from typing import List, Dict, Tuple
+import sys
+import os
+
 import espn_team_pages
 from cfb_module import Team, Game
-import sys
 
 def compare_rankings(rank1: List[Team], rank2: List[Team], n_biggest_diff: int = 5):
     '''
@@ -27,7 +29,11 @@ def compare_rankings(rank1: List[Team], rank2: List[Team], n_biggest_diff: int =
     # get the difference in rankings for each team
     rank_differentials: List[List[str]] = [[] for _ in range((len(rank1)*2) - 1)]
     for team in rank1:
-        difference = rank1_dict[team.get_name()] - rank2_dict[team.get_name()]
+        try:
+            difference = rank1_dict[team.get_name()] - rank2_dict[team.get_name()]
+        except KeyError:
+            continue
+
         rank_differentials[difference + len(rank1) - 1].append(team.get_name())
 
     # compute which teams dropped the most
@@ -72,7 +78,7 @@ def compare_rankings(rank1: List[Team], rank2: List[Team], n_biggest_diff: int =
     prefix = ""
     for team_name in rank1_top25:
         if team_name not in rank2_top25:
-            dropped += f"{prefix} {team_name} ({rank1_top25[team_name]})"
+            dropped += f"{prefix} {team_name} ({rank1_top25[team_name] + 1})"
             prefix = ","
     print(dropped)
         
@@ -89,7 +95,7 @@ def filter_ranking(ranking: List[Team], conference: str = '', division: str = ''
 
     filtered_ranking2: List[Tuple[Team, int]] = []
     for team_tuple in filtered_ranking:
-        if division == '' or (division == "FBS" and team_tuple[0].is_fbs) or (division == 'FCS' and not team_tuple[0].is_fbs and team_tuple[0].is_d1):
+        if division == '' or (division == "FBS" and team_tuple[0].is_fbs) or (division == 'FCS' and not team_tuple[0].is_fbs and team_tuple[0].d1):
             filtered_ranking2.append(team_tuple)
 
     return filtered_ranking2
@@ -159,26 +165,29 @@ def read_ranking(filename: str) -> List[Team]:
     return ranking
 
 def main():
-    teams_directory: str = sys.argv[1]
+    team_pages_directory: str = sys.argv[1]
+    previous_season_team_pages_directory: str = os.path.join("team_pages/2022-week14-results")
 
-    Game.away_disadvantage = 2
-    Game.winner_bonus = 5
+    Game.away_disadvantage = 4
+
     Game.adjusted_margin_cap = 28
-    Game.non_fbs_bonus = 0
-    Game.fcs_game_factor = 0.15
-    Game.g5_game_factor = 0.8
+
+    Game.fcs_game_scalar = 0.15
+    Game.g5_game_scalar = 0.8
+
     Game.loss_adjustment = 10
     Game.win_adjustment = 10
 
+    Game.previous_season_scalar = 0.2
+
     Team.ignore_all_non_d1 = True
-    Team.non_conference_weight = 1.5
 
-    teams: List[Team] = espn_team_pages.create_teams(teams_directory)
+    teams: List[Team] = espn_team_pages.create_teams(team_pages_directory, previous_season_team_pages_directory)
 
-    rank1 = sorted(teams, key=lambda Team: Team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_result_from_opp=True), reverse=True)
+    rank1 = sorted(teams, key=lambda Team: Team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_from_opponent=True), reverse=True)
     
     for i, team in enumerate(rank1):
-        print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_result_from_opp=True)})")
+        print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_from_opponent=True)})")
 
     # for i, team in enumerate(filter_ranking(rank1, conference="SEC")):
     #     print(f"{i+1}. ({team[1]+1}) {team[0].get_name()} ({team[0].get_avg_game_metric(0,0,opp_strength_weight=.5,recency_bias=0.03,exclude_team_result_from_opp=True)})")
@@ -189,7 +198,7 @@ def main():
     # for i, team in enumerate(rank2):
     #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
 
-    # compare_rankings(read_ranking("rankings/2022-week14.txt"), rank1)
+    compare_rankings(read_ranking("rankings/2022-week15.txt"), rank1)
 
 if __name__ == "__main__":
     main()

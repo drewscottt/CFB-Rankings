@@ -12,7 +12,7 @@ from typing import List, Dict
 from cfb_module import Team
 from lib import ESPNParserV1 as parser, ESPN_URL_PREFIX
 
-def _get_team_data_from_subdivision_page() -> List[Dict[str, str]]:
+def get_team_data_from_subdivision_page() -> List[Dict[str, str]]:
     team_data: List[Dict[str, str]] = []
 
     # get the team data from the subdivision pages
@@ -38,25 +38,25 @@ def _get_team_data_from_subdivision_page() -> List[Dict[str, str]]:
 
     return team_data
 
-def _add_espn_team_pages_to_team_data(
+def add_espn_team_pages_to_team_data(
     team_data: List[Dict[str, str]],
-    team_pages_dir: str
+    team_pages_dir: str,
+    prev_team_pages_dir: str
 ) -> List[Dict[str, str]]:
     # use the team data from the previous step to get individual team pages
     for team_fields in team_data:    
         # get the team page
         team_url: str = team_fields["url"]
         
-        team_fields["team_page"] = _get_espn_team_page(f"{ESPN_URL_PREFIX}{team_url}", team_pages_dir)
+        team_fields["team_page"] = get_espn_team_page(f"{ESPN_URL_PREFIX}{team_url}", team_pages_dir)
+        team_fields["prev_team_page"] = get_espn_team_page(f"{ESPN_URL_PREFIX}{team_url}", prev_team_pages_dir)
 
     return team_data
 
-def create_teams(
-    team_pages_dir: str
-) -> List[Team]:
+def create_teams(team_pages_dir: str, prev_team_pages_dir: str) -> List[Team]:
     # get the raw team data, along with their pages
-    team_data: List[Dict[str, str]] = _get_team_data_from_subdivision_page()
-    _add_espn_team_pages_to_team_data(team_data, team_pages_dir)
+    team_data: List[Dict[str, str]] = get_team_data_from_subdivision_page()
+    add_espn_team_pages_to_team_data(team_data, team_pages_dir, prev_team_pages_dir)
 
     # get the truncated team name mappings
     teams_trunc_filename: str = "espn_team_truncs.csv"
@@ -73,15 +73,12 @@ def create_teams(
 def get_espn_team_pages(
     team_pages_dir: str
 ):
-    team_data: List[Dict[str, str]] = _get_team_data_from_subdivision_page()
+    team_data: List[Dict[str, str]] = get_team_data_from_subdivision_page()
 
     for team_fields in team_data:
-        _ = _get_espn_team_page(f"{ESPN_URL_PREFIX}{team_fields['url']}", team_pages_dir)
+        _ = get_espn_team_page(f"{ESPN_URL_PREFIX}{team_fields['url']}", team_pages_dir)
 
-def _get_espn_team_page(
-    url: str,
-    team_pages_dir: str
-) -> str:
+def get_espn_team_page(url: str, team_pages_dir: str) -> str:
     team_filename: str = os.path.join(team_pages_dir, url.split('/')[-1].strip() + ".html")
     team_page: str = ""
     if not os.path.isfile(team_filename):

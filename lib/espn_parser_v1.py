@@ -180,22 +180,22 @@ class ESPNParserV1(lib.Parser):
     @classmethod
     def create_teams(
         cls: lib.Parser,
-        team_data: List[Dict[str, str]],
+        teams_struct: List[Dict[str, str]],
         trunc_to_full: Dict[str, str],
     ) -> List[cfb_module.Team]:
         # first, create all of the team objects based on simple data
         teams: List[cfb_module.Team] = []
         teams_lookup: Dict[str, cfb_module.Team] = {}
-        for team_fields in team_data:
+        for team_struct in teams_struct:
             # process team page
-            team_soup: BeautifulSoup = BeautifulSoup(team_fields["team_page"], "html.parser")
+            team_soup: BeautifulSoup = BeautifulSoup(team_struct["team_page"], "html.parser")
 
             team_name: str = team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap fw-bold"}).text
-            team_conf: str = team_fields["conference"].strip()
+            team_conf: str = team_struct["conference"].strip()
 
             team: cfb_module.Team = cfb_module.Team(team_name, team_conf)
-            team.is_d1 = True
-            if team_fields["subdivision"].strip() == "FBS":
+            team.d1 = True
+            if team_struct["subdivision"].strip() == "FBS":
                 team.set_fbs(True)
 
             teams.append(team)
@@ -203,9 +203,9 @@ class ESPNParserV1(lib.Parser):
 
         # second, add all of the games to each team
         # we waited to do this because we need opponent team objects first
-        for team_fields in team_data:
+        for team_struct in teams_struct:
             # process team page to get the team name
-            team_soup: BeautifulSoup = BeautifulSoup(team_fields["team_page"], "html.parser")
+            team_soup: BeautifulSoup = BeautifulSoup(team_struct["team_page"], "html.parser")
 
             team_name: str = team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap fw-bold"}).text
 
@@ -216,14 +216,32 @@ class ESPNParserV1(lib.Parser):
 
             game_num: int = 0
             for result_span in result_spans:
-                game, opp_team = cls.process_game(result_span, team, trunc_to_full, teams_lookup)
+                game, opponent = cls.process_game(result_span, team, trunc_to_full, teams_lookup)
                 if game is None:
                     continue
 
-                added: bool = team.add_game(game, game_num)
+                added: bool = team.add_game(game, game_num, False)
                 if added:
                     game_num += 1
-                opp_team.add_game(game)
+                opponent.add_game(game, previous_season=False)
+
+            prev_season_team_soup: BeautifulSoup = BeautifulSoup(team_struct["prev_team_page"], "html.parser")
+
+            # process all the game results for the team
+            result_spans = prev_season_team_soup.find_all("span", {"class": "Schedule__Result"})
+
+            game_num: int = 0
+            for result_span in result_spans:
+                game, opponent = cls.process_game(result_span, team, trunc_to_full, teams_lookup)
+                if game is None:
+                    continue
+
+                game.set_previous_season(True)
+
+                added: bool = team.add_game(game, game_num, True)
+                if added:
+                    game_num += 1
+                opponent.add_game(game, previous_season=True)
 
         return teams
 
