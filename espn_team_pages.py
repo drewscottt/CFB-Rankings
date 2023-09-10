@@ -19,8 +19,8 @@ def get_team_data_from_subdivision_page() -> List[Dict[str, str]]:
     team_data_from_subdivision_pages_filename: str = "team_links.csv"
     if not os.path.isfile(team_data_from_subdivision_pages_filename):
         # we haven't already sent this request, so go to espn.com
-        team_data: List[Dict[str, str]] = parser.get_team_data_from_subdivision_pages(ESPN_URL_PREFIX)
-
+        team_data: List[Dict[str, str]] = parser.get_team_data_from_subdivision_pages()
+        
         # cache the result
         with open(team_data_from_subdivision_pages_filename, "a") as f:
             for team in team_data:
@@ -97,9 +97,10 @@ def get_espn_team_page(url: str, team_pages_dir: str) -> str:
     return team_page
 
 def main():
-    team_pages_dir: str = sys.argv[1]
+    get_team_data_from_subdivision_page()
+    # team_pages_dir: str = sys.argv[1]
 
-    get_espn_team_pages(team_pages_dir)
+    # get_espn_team_pages(team_pages_dir)
                 
 if __name__ == "__main__":
     main()

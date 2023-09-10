@@ -125,7 +125,8 @@ class ESPNParserV1(lib.Parser):
 
         # read the FBS teams
         espn_fbs_teams_url: str = f"{lib.ESPN_URL_PREFIX}/college-football/teams"
-        fbs_teams_content: str = requests.get(espn_fbs_teams_url).text
+        headers = {"User-Agent": "Chrome/58.0.3029.110"}
+        fbs_teams_content: str = requests.get(espn_fbs_teams_url, headers=headers).text
         fbs_teams_soup: BeautifulSoup = BeautifulSoup(fbs_teams_content, "html.parser")
 
         # process the FBS teams
@@ -143,15 +144,15 @@ class ESPNParserV1(lib.Parser):
                     conference = ancestor.previous_sibling.text.strip()
                     break
 
-                team_data.append({
-                    "url": team_link["href"],
-                    "subdivision": "FBS",
-                    "conference": conference
-                })
+            team_data.append({
+                "url": team_link["href"],
+                "subdivision": "FBS",
+                "conference": conference
+            })
 
         # read the FCS teams
         espn_fcs_teams_url: str = f"{lib.ESPN_URL_PREFIX}/college-football/standings/_/view/fcs-i-aa"
-        fcs_teams_content: str = requests.get(espn_fcs_teams_url).text
+        fcs_teams_content: str = requests.get(espn_fcs_teams_url, headers=headers).text
         fcs_teams_soup: BeautifulSoup = BeautifulSoup(fcs_teams_content, "html.parser")
 
         # process the FCS teams
@@ -169,11 +170,11 @@ class ESPNParserV1(lib.Parser):
                     conference = ancestor.previous_sibling.text.strip()
                     break
 
-                team_data.append({
-                    "url": team_link["href"],
-                    "subdivision": "FCS",
-                    "conference": conference
-                })
+            team_data.append({
+                "url": team_link["href"],
+                "subdivision": "FCS",
+                "conference": conference
+            })
 
         return team_data
 

@@ -64,8 +64,8 @@ def analyze_predictions(ranking: Dict[str, str], espn_schedule_url: str):
 
     # update each game with result and betting info
     for game in games:
-        preview_page = get_preview_page(game.get_url())
-        parser.process_game_preview(preview_page, game)
+        # preview_page = get_preview_page(game.get_url())
+        # parser.process_game_preview(preview_page, game)
 
         result_page = get_result_page(game.get_url())
         parser.process_game_result(result_page, game, abbrevs)
