@@ -212,7 +212,7 @@ class ESPNParserV1(lib.Parser):
 
             team: cfb_module.Team = teams_lookup[team_name]
 
-            # process all the game results for the team
+            # process all the game results for the team from this season
             result_spans = team_soup.find_all("span", {"class": "Schedule__Result"})
 
             game_num: int = 0
@@ -226,9 +226,8 @@ class ESPNParserV1(lib.Parser):
                     game_num += 1
                 opponent.add_game(game, previous_season=False)
 
+            # process all the game results for the team from last season
             prev_season_team_soup: BeautifulSoup = BeautifulSoup(team_struct["prev_team_page"], "html.parser")
-
-            # process all the game results for the team
             result_spans = prev_season_team_soup.find_all("span", {"class": "Schedule__Result"})
 
             game_num: int = 0
@@ -269,22 +268,22 @@ class ESPNParserV1(lib.Parser):
             game_opp_full = game_opp_trunc
 
         # use the opponent's full name to find the Team itself
-        opp_team: Optional[cfb_module.Team] = None
+        opponent: Optional[cfb_module.Team] = None
         if game_opp_full in teams_seen:
-            opp_team = teams_seen[game_opp_full]
+            opponent = teams_seen[game_opp_full]
         else:
-            opp_team = cfb_module.Team(game_opp_full)
-            teams_seen[game_opp_full] = opp_team
+            opponent = cfb_module.Team(game_opp_full)
+            teams_seen[game_opp_full] = opponent
 
         # determine home/away
         game_at_vs: str = game_div.find("span", {"class": "Schedule_atVs"}).text
         home_team: Optional[cfb_module.Team] = None
         if game_at_vs == "@":
-            home_team = opp_team
+            home_team = opponent
             away_team = team
         else:
             home_team = team
-            away_team = opp_team
+            away_team = opponent
 
         # determine game result in terms of home/away
         game_result: str = game_div.find("span", {"class": "Schedule__Result"}).text
@@ -314,7 +313,7 @@ class ESPNParserV1(lib.Parser):
         # create the game
         game: cfb_module.Game = cfb_module.Game(home_team, away_team, home_score, away_score, espn_game_id)
 
-        return game, opp_team
+        return game, opponent
     
     @classmethod
     def get_game_state(cls: lib.Parser, game_page: str) -> str:

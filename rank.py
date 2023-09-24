@@ -178,7 +178,7 @@ def main():
     Game.loss_adjustment = 10
     Game.win_adjustment = 10
 
-    Game.previous_season_scalar = 0.1
+    Game.previous_season_scalar = 0
 
     Team.ignore_all_non_d1 = True
 
@@ -198,7 +198,7 @@ def main():
     # for i, team in enumerate(rank2):
     #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
 
-    compare_rankings(read_ranking("rankings/2023-week3.txt"), rank1)
+    compare_rankings(read_ranking("rankings/2023-week4.txt"), rank1)
 
 if __name__ == "__main__":
     main()

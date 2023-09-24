@@ -286,7 +286,7 @@ class Game:
             adjusted_margin *= -1
 
         if not self.get_winner().is_fbs() and self.get_loser().is_fbs():
-            # if FCS team beats FBS team, 
+            # if FCS team beats FBS team
             adjusted_margin *= Game.non_fbs_loss_multiplier
 
         adjusted_margin = self.scale_result_for_level(adjusted_margin)
