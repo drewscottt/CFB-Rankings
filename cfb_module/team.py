@@ -114,9 +114,7 @@ class Team:
                     for the ith and (n - i + 1)th game: 0.1 +/- (0.05/2^i)
         '''
 
-        all_games: List[cfb_module.Game] = self.games
-        if cfb_module.Game.previous_season_scalar != 0:
-            all_games: List[cfb_module.Game] = [*self.previous_season_games, *self.games]
+        all_games: List[cfb_module.Game] = self.get_all_games()
 
         game_metrics: List[float] = []
         for game in all_games:
@@ -124,8 +122,7 @@ class Team:
                 game,
                 exclude_team_from_opponent,
                 opp_strength_weight,
-                non_conference_scalar,
-                all_games
+                non_conference_scalar
             )
 
             game_metrics.append(game_metric)
@@ -144,14 +141,13 @@ class Team:
         exclude_team_from_opponent: bool,
         opp_strength_weight: float,
         non_conference_scalar: float,
-        all_games: List[cfb_module.Game],
     ) -> float:
         opponent: Optional[Team] = game.get_opponent(self)
         if opponent is None:
             return 0
 
         opponent_avg_adjusted_margin: float = opponent.get_avg_adjusted_margin(
-            all_games,
+            opponent.get_all_games(),
             self,
             exclude_team_from_opponent
         )
@@ -229,7 +225,17 @@ class Team:
         '''
 
         return self.games
+    
+    def get_all_games(self) -> List[cfb_module.Game]:
+        '''
+        '''
 
+        all_games: List[cfb_module.Game] = self.games
+        if cfb_module.Game.previous_season_scalar != 0:
+            all_games: List[cfb_module.Game] = [*self.previous_season_games, *self.games]
+
+        return all_games
+ 
     def get_num_wins(self, exclude_team: Optional[Team] = None) -> int:
         '''
             Return the number of real-life wins this team has in their game list
