@@ -184,10 +184,10 @@ def main():
 
     teams: List[Team] = espn_team_pages.create_teams(team_pages_directory, previous_season_team_pages_directory)
 
-    rank1 = sorted(teams, key=lambda Team: Team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_from_opponent=True), reverse=True)
+    rank1 = sorted(teams, key=lambda Team: Team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,opp_strength_weight=0.5,recency_bias=0,exclude_team_from_opponent=True), reverse=True)
     
     for i, team in enumerate(rank1):
-        print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,opp_strength_weight=0.5,recency_bias=0.03,exclude_team_from_opponent=True)})")
+        print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(ignore_worst_n=0,ignore_best_n=0,opp_strength_weight=0.5,recency_bias=0,exclude_team_from_opponent=True)})")
 
     # for i, team in enumerate(filter_ranking(rank1, conference="SEC")):
     #     print(f"{i+1}. ({team[1]+1}) {team[0].get_name()} ({team[0].get_avg_game_metric(0,0,opp_strength_weight=.5,recency_bias=0.03,exclude_team_result_from_opp=True)})")
@@ -198,7 +198,7 @@ def main():
     # for i, team in enumerate(rank2):
     #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
 
-    compare_rankings(read_ranking("rankings/2023-week7.txt"), rank1)
+    compare_rankings(read_ranking("rankings/2023-week9.txt"), rank1)
 
 if __name__ == "__main__":
     main()
