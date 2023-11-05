@@ -44,7 +44,7 @@ class ESPNParserV1(lib.Parser):
                 url: str
                 try:
                     result_link = game_row.find("td", {"class", "teams__col Table__TD"})
-                    if result_link.text == "Postponed" or result_link.text == "Canceled":
+                    if result_link.text == "Postponed" or result_link.text == "Canceled" or result_link.text == "Forfeit":
                         continue
 
                     url = lib.ESPN_URL_PREFIX + result_link.find("a")["href"]
@@ -288,7 +288,7 @@ class ESPNParserV1(lib.Parser):
         # determine game result in terms of home/away
         game_result: str = game_div.find("span", {"class": "Schedule__Result"}).text
         game_score: str = game_div.find("span", {"class": "Schedule__Score"}).text
-        if game_result == "PPD" or game_score == "PPD":
+        if game_result == "PPD" or game_score == "PPD" or game_score == "Forfeit":
             return None, None
 
         winner_score: int = int(game_score.split("-")[0])
