@@ -97,10 +97,10 @@ def get_espn_team_page(url: str, team_pages_dir: str) -> str:
     return team_page
 
 def main():
-    get_team_data_from_subdivision_page()
-    # team_pages_dir: str = sys.argv[1]
+    # get_team_data_from_subdivision_page()
+    team_pages_dir: str = sys.argv[1]
 
-    # get_espn_team_pages(team_pages_dir)
+    get_espn_team_pages(team_pages_dir)
                 
 if __name__ == "__main__":
     main()

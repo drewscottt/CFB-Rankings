@@ -166,7 +166,7 @@ def read_ranking(filename: str) -> List[Team]:
 
 def main():
     team_pages_directory: str = sys.argv[1]
-    previous_season_team_pages_directory: str = os.path.join("team_pages/2022-week14-results")
+    previous_season_team_pages_directory: str = os.path.join("team_pages/2023-week13-results")
 
     Game.away_disadvantage = 4
 
@@ -198,7 +198,7 @@ def main():
     # for i, team in enumerate(rank2):
     #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
 
-    compare_rankings(read_ranking("rankings/2023-week13.txt"), rank1)
+    compare_rankings(read_ranking("rankings/2024-week11.txt"), rank1)
 
 if __name__ == "__main__":
     main()
