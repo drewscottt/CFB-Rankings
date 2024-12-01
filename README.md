@@ -27,7 +27,11 @@ Note: calculating the "result factor" of the game metric is used by counting rea
 
 ## Usage
 
-There are two main programs:
+There are 3 main programs:
+
+* espn_team_pages.py: Used to retreive each team's ESPN page and store them in the specified directory.
+
+    ```python3 espn_team_pages.py team_pages/<sub_dir>```
 
 * rank.py: Used to compute a ranking, or compare rankings.
 
@@ -40,6 +44,8 @@ There are two main programs:
     Note: before running for a new week of results, first craate the results directory under ```team_pages```, then it will populate the directory.
 
 * predict_analyze.py: Used to predict a schedule of games based on a previously generated ranking, or analyze a schedule of results and sportsbook predictions in relation to a ranking.
+
+    NOTE: This probably doesn't work now, as ESPN has in-housed their betting info. Probably in a different format.
 
     ```python3 predict_analyze.py <ranking_filename> <predict_analyze> <optional: espn_schedule_url>```
 
