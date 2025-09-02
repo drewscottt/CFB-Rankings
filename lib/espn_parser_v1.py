@@ -265,6 +265,8 @@ class ESPNParserV1(lib.Parser):
         game_div = result_span.find_parent("div").find_parent("div")
         
         espn_game_id = game_div.find_parent("a")["href"].split("/")[-1]
+        if not espn_game_id.isdigit():
+            espn_game_id = game_div.find_parent("a")["href"].split("/")[-2]
 
         # get the opponent for the game
         game_opp_trunc: str = game_div.find("span", {"class": "Schedule__Team"}).text
