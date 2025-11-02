@@ -198,7 +198,7 @@ def main():
     # for i, team in enumerate(rank2):
     #     print(f"{i+1}. {team.get_name()} ({team.get_avg_game_metric(0,0,opp_strength_weight=.5,exclude_team_result_from_opp=True)})")
 
-    compare_rankings(read_ranking("rankings/2025/week8.txt"), rank1)
+    compare_rankings(read_ranking("rankings/2025/week9.txt"), rank1)
 
 if __name__ == "__main__":
     main()
