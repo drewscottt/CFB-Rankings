@@ -191,13 +191,8 @@ class ESPNParserV1(lib.Parser):
             # process team page
             team_soup: BeautifulSoup = BeautifulSoup(team_struct["team_page"], "html.parser")
 
-            try: 
-                team_name: str = team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap fw-bold"}).text
-                team_conf: str = team_struct["conference"].strip()
-            except Exception:
-                # TODO lol
-                team_name = "Wagner"
-                team_conf: str = team_struct["conference"].strip()
+            team_name: str = team_name_from_team_page_soup(team_soup)
+            team_conf: str = team_struct["conference"].strip()
 
             team: cfb_module.Team = cfb_module.Team(team_name, team_conf)
             team.d1 = True
@@ -213,11 +208,7 @@ class ESPNParserV1(lib.Parser):
             # process team page to get the team name
             team_soup: BeautifulSoup = BeautifulSoup(team_struct["team_page"], "html.parser")
 
-            try:
-                team_name: str = team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap fw-bold"}).text
-            except Exception:
-                # TODO lol
-                team_name = "Wagner"
+            team_name: str = team_name_from_team_page_soup(team_soup)
 
             team: cfb_module.Team = teams_lookup[team_name]
 
@@ -342,3 +333,7 @@ class ESPNParserV1(lib.Parser):
             return "active"
         
         return "preview"
+
+
+def team_name_from_team_page_soup(team_soup: BeautifulSoup) -> str:
+    return team_soup.find("h1", {"class": "ClubhouseHeader__Name"}).find("span", {"class": "db pr3 nowrap ClubhouseHeader__Emph"}).text

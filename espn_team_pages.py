@@ -4,13 +4,13 @@
     Usage: python3 get_espn_team_pages.py <team_pages_dir>
 '''
 
-import requests
 import os.path
 import sys
 from typing import List, Dict
 
 from cfb_module import Team
 from lib import ESPNParserV1 as parser, ESPN_URL_PREFIX
+from lib.espn_requestor import ESPNRequestor
 
 def get_team_data_from_subdivision_page() -> List[Dict[str, str]]:
     team_data: List[Dict[str, str]] = []
@@ -83,8 +83,8 @@ def get_espn_team_page(url: str, team_pages_dir: str) -> str:
     team_page: str = ""
     if not os.path.isfile(team_filename):
         # we haven't cached it yet, so go get it from espn.com
-        headers = {"User-Agent": "Chrome/58.0.3029.110"}
-        team_page = requests.get(url, headers=headers).text
+        resp = ESPNRequestor.get(url)
+        team_page = resp.text
 
         # cache it
         with open(team_filename, "w") as f:
